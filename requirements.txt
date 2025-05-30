@@ -1,0 +1,14 @@
+pydantic-ai>=0.2.11
+pydantic-graph>=0.2.11
+camoufox>=0.4.11
+loguru>=0.7.3
+newspaper3k>=0.2.8
+beautifulsoup4>=4.13.0
+requests>=2.31.0
+pyalex>=0.17
+habanero>=1.2.6
+goose3>=3.1.19
+PyMuPDF>=1.25.0
+python-docx>=1.1.0
+EbookLib>=0.19
+yt-dlp>=2023.12.30

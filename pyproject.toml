@@ -1,0 +1,87 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pydantic-scrape"
+version = "0.1.0"
+description = "A modular web scraping framework using pydantic-ai and pydantic-graph with intelligent caching"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Pydantic Scrape Contributors"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: Browsers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Markup :: HTML",
+]
+keywords = ["scraping", "web-scraping", "pydantic", "camoufox", "automation"]
+requires-python = ">=3.10"
+
+dependencies = [
+    "pydantic-ai>=0.2.11",
+    "pydantic-graph>=0.2.11", 
+    "camoufox>=0.4.11",
+    "loguru>=0.7.3",
+    "newspaper3k>=0.2.8",
+    "beautifulsoup4>=4.13.0",
+    "requests>=2.31.0",
+    "pyalex>=0.17",
+    "habanero>=1.2.6",
+    "goose3>=3.1.19",
+    "PyMuPDF>=1.25.0",
+    "python-docx>=1.1.0", 
+    "EbookLib>=0.19",
+    "yt-dlp>=2023.12.30",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/pydantic-scrape"
+Repository = "https://github.com/yourusername/pydantic-scrape"
+Issues = "https://github.com/yourusername/pydantic-scrape/issues"
+
+[tool.setuptools.packages.find]
+include = ["pydantic_scrape*"]
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
