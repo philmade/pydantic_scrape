@@ -1,36 +1,36 @@
 # Pydantic Scrape - Graph Test Results
 
 **Test Summary:** 4/4 graphs passing ✅  
-**Total Execution Time:** 94.3 seconds  
-**Test Date:** 2025-06-03 11:49:52
+**Total Execution Time:** 89.1 seconds  
+**Test Date:** 2025-06-03 11:56:02
 
 ## 📊 Results by Graph
 
 ### ✅ Search Answer
 
 - **Status:** PASSED
-- **Execution Time:** 32.9s
-- **Summary:** Found 3 sources, generated comprehensive answer with 3 insights
+- **Execution Time:** 26.3s
+- **Summary:** Found 3 sources, generated comprehensive answer with 2 insights
 - **Metrics:**
   - Sources Found: 3
-  - Insights Count: 3
-  - Answer Length: 1086
+  - Insights Count: 2
+  - Answer Length: 656
 
 ### ✅ Dynamic Scrape
 
 - **Status:** PASSED
-- **Execution Time:** 12.4s
-- **Summary:** Extracted 30 headlines and 28 categories
+- **Execution Time:** 15.5s
+- **Summary:** Extracted 31 headlines and 7 categories
 - **Metrics:**
-  - Headlines Count: 30
-  - Categories Count: 28
+  - Headlines Count: 31
+  - Categories Count: 7
   - Url Tested: https://news.ycombinator.com
-  - Content Length: 36712
+  - Content Length: 36792
 
 ### ✅ Full Scrape Graph
 
 - **Status:** PASSED
-- **Execution Time:** 20.0s
+- **Execution Time:** 13.2s
 - **Summary:** Detected science, extracted metadata, full content
 - **Metrics:**
   - Content Type: science
@@ -41,7 +41,7 @@
 ### ✅ Search Scrape Answer
 
 - **Status:** PASSED
-- **Execution Time:** 29.0s
+- **Execution Time:** 34.1s
 - **Summary:** Found 0 sources, scraped 2, generated 1 summaries
 - **Metrics:**
   - Sources Found: 0

@@ -2,7 +2,7 @@
 
 A modular AI-powered web scraping framework built on [pydantic-ai](https://github.com/pydantic/pydantic-ai) and [pydantic-graph](https://github.com/pydantic/pydantic-graph) for intelligent content extraction and research workflows.
 
-## 🚀 What is Pydantic Scrape?
+## What is Pydantic Scrape?
 
 Pydantic Scrape is a framework for building intelligent web scraping workflows that combine:
 
@@ -37,7 +37,7 @@ print(f"📚 Sources: {len(result['answer']['sources'])}")
 3. 🎯 **Answer generation** - Creates structured answers with key insights and sources
 4. ⚡ **Fast execution** - Complete research workflow in ~10 seconds
 
-## 🏗️ Core Architecture: Agents + Dependencies + Graphs
+## Core Architecture: Agents + Dependencies + Graphs
 
 Pydantic Scrape follows a clean three-layer architecture:
 
