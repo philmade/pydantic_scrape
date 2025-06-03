@@ -77,6 +77,7 @@ Thumbs.db
 logs/
 temp/
 tmp/
+.ipynb
 
 # Browser downloads/cache
 downloads/
@@ -93,3 +94,10 @@ scrapingEVENOLDERANDBBAD/
 test_output/
 debug_*.py
 test_*.py
+test_*.py
+examples/
+*.ipynb
+
+# Generated files  
+*_graph.mermaid
+generate_graphs_mermaid.py

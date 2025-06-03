@@ -14,15 +14,10 @@ Key Features:
 
 from dotenv import load_dotenv
 
-from .context import FetchResult, ScrapeContext, SourceType
+from .dependencies.fetch import FetchResult
 
 load_dotenv()
 __version__ = "0.1.0"
 __all__ = [
-    "scrape_url",
-    "scrape_multiple_urls",
-    "scrape_graph",
-    "ScrapeContext",
     "FetchResult",
-    "SourceType",
 ]
