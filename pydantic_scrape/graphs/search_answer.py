@@ -286,6 +286,7 @@ class AnswerNode(BaseNode[SearchAnswerState, SearchAnswerDeps, End]):
 # === GRAPH ASSEMBLY ===
 
 search_answer_graph = Graph(nodes=[SearchNode, SummarizeNode, AnswerNode])
+search_answer_graph.mermaid_code()
 
 
 async def search_answer(query: str, max_search_results: int = 8) -> Dict[str, Any]:

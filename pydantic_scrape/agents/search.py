@@ -39,7 +39,7 @@ class SearchTaskAndResults:
 _search_agent = Agent(
     "openai:gpt-4o",
     deps_type=SearchTaskAndResults,
-    output_type=List[SearchResult],
+    output_type=str,
     system_prompt="""You are a search specialist. Execute 2-3 targeted searches.
 
 AVAILABLE SEARCH TYPES:
@@ -63,7 +63,8 @@ async def execute_searches(
         valid_results = [r for r in results if not isinstance(r, Exception)]
         ctx.deps.results.extend(valid_results)
         ctx.deps.iterations += 1
-        return f"✅ Found {len(valid_results)} results from {len(queries)} searches"
+        print(f"searched for {queries}")
+        return [result.model_dump() for result in ctx.deps.results]
     except Exception as e:
         return f"❌ Search failed: {str(e)}"
 
@@ -82,7 +83,10 @@ async def prune_results(
         # Remove results (reverse order to avoid index shifting)
         for idx in sorted(indices_to_remove, reverse=True):
             if 0 <= idx < len(ctx.deps.results):
+                removed = ctx.deps.results[idx]
+                print(f"removing {removed} because {reason}")
                 ctx.deps.results.pop(idx)
+
 
         # Update satisfaction status
         ctx.deps.satisfied = satisfied
