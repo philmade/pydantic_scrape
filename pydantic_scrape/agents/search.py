@@ -22,9 +22,6 @@ class SearchTaskAndResults:
 
     query: str
     results: List[SearchResult] = None
-    iterations: int = 0
-    max_iterations: int = 3
-    satisfied: bool = False
 
     def __post_init__(self):
         if self.results is None:
@@ -47,7 +44,8 @@ AVAILABLE SEARCH TYPES:
 - SCIENCE_ARXIV: Preprints from arXiv  
 - ZENODO: Research outputs from Zenodo repository
 
-Create different search queries using these stable search types.""",
+Create different search queries using these stable search types. Read the results, get new search terms from what you find, and keep going until you are happy with the results.
+In your final answer, please answer the question with references rather than just listing the search results.""",
 )
 
 
@@ -62,8 +60,6 @@ async def execute_searches(
         )
         valid_results = [r for r in results if not isinstance(r, Exception)]
         ctx.deps.results.extend(valid_results)
-        ctx.deps.iterations += 1
-        print(f"searched for {queries}")
         return [result.model_dump() for result in ctx.deps.results]
     except Exception as e:
         return f"❌ Search failed: {str(e)}"
@@ -78,18 +74,12 @@ async def prune_results(
 ) -> str:
     """Remove irrelevant results and optionally mark search as satisfied"""
     try:
-        ctx.deps.iterations += 1  # Increment on each tool call
-
         # Remove results (reverse order to avoid index shifting)
         for idx in sorted(indices_to_remove, reverse=True):
             if 0 <= idx < len(ctx.deps.results):
                 removed = ctx.deps.results[idx]
                 print(f"removing {removed} because {reason}")
                 ctx.deps.results.pop(idx)
-
-
-        # Update satisfaction status
-        ctx.deps.satisfied = satisfied
 
         status = "satisfied" if satisfied else "continuing"
         return f"✂️ Removed {len(indices_to_remove)} results: {reason}. Status: {status}"
