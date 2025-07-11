@@ -101,3 +101,5 @@ examples/
 # Generated files  
 *_graph.mermaid
 generate_graphs_mermaid.py
+/screenshots
+/video_projects

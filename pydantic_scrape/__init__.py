@@ -15,6 +15,8 @@ Key Features:
 from dotenv import load_dotenv
 
 from .dependencies.fetch import FetchResult
+from .services.download_service import DownloadService
+from .services.transcription_service import TranscriptionService, TranscriptionResult
 
 load_dotenv()
 __version__ = "0.1.0"
