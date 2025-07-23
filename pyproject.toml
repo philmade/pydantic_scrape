@@ -33,7 +33,7 @@ dependencies = [
     "loguru>=0.7.3",
     "newspaper3k>=0.2.8",
     "beautifulsoup4>=4.13.0",
-    "requests>=2.31.0",
+    "httpx>=0.24.0",
     "pyalex>=0.17",
     "habanero>=1.2.6",
     "goose3>=3.1.19",
@@ -41,9 +41,14 @@ dependencies = [
     "python-docx>=1.1.0",
     "EbookLib>=0.19",
     "yt-dlp>=2023.12.30",
-    "moviepy>=2.2.1",
-    "openai>=1.84.0",
-    "google-generativeai>=0.5.4",
+    "lxml>=4.9.0",
+    "lxml_html_clean>=0.1.0",
+    "rapidfuzz",
+    "python-dotenv",
+    "google-generativeai>=0.3.0",
+    "openai>=1.0.0",
+    "platformdirs>=3.0.0",
+    "searchthescience>=1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -55,9 +60,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/pydantic-scrape"
-Repository = "https://github.com/yourusername/pydantic-scrape"
-Issues = "https://github.com/yourusername/pydantic-scrape/issues"
+Homepage = "https://github.com/philmade/pydantic_scrape"
+Repository = "https://github.com/philmade/pydantic_scrape"
+Issues = "https://github.com/philmade/pydantic_scrape/issues"
 
 [tool.setuptools.packages.find]
 include = ["pydantic_scrape*"]

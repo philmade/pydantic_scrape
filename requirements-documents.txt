@@ -1,0 +1,2 @@
+# Document processing dependencies (already included in core)
+-r requirements-core.txt

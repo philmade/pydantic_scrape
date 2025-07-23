@@ -1,0 +1,2 @@
+# Optional fallback dependencies (goose3 already included in core)
+# This file is kept for future optional dependencies

@@ -1,0 +1,3 @@
+# Academic research dependencies (most already included in core)
+-r requirements-core.txt
+searchthescience>=1.0.0
