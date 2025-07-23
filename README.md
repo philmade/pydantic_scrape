@@ -1,331 +1,135 @@
 # Pydantic Scrape
 
-A modular AI-powered web scraping framework built on [pydantic-ai](https://github.com/pydantic/pydantic-ai) and [pydantic-graph](https://github.com/pydantic/pydantic-graph) for intelligent content extraction and research workflows.
+A modern web scraping framework that combines AI-powered content extraction with intelligent workflow orchestration. Built on pydantic-ai for reliable, type-safe scraping operations.
 
-## What is Pydantic Scrape?
+## Why Pydantic Scrape?
 
-Pydantic Scrape is a framework for building intelligent web scraping workflows that combine:
+Web scraping is complex. You need to handle dynamic content, extract meaningful information, and orchestrate multi-step workflows. Most tools force you to choose between simple scrapers or complex frameworks with steep learning curves.
 
-- **AI-powered content extraction** using pydantic-ai agents
-- **Graph-based workflow orchestration** with pydantic-graph  
-- **Type-safe dependency injection** for modular, reusable components
-- **Specialized content handlers** for academic papers, articles, videos, and more
+Pydantic Scrape bridges this gap by providing:
 
-## ⚡ Quick Start: Search → Answer Workflow
+- **AI-powered extraction** - Let AI understand and extract what you need instead of writing brittle selectors
+- **Type-safe workflows** - Structured data with validation built-in  
+- **Academic research focus** - First-class support for papers, citations, and research workflows
+- **Browser automation** - Handle JavaScript, authentication, and complex interactions seamlessly
 
-Get comprehensive research answers in seconds with our streamlined search-to-answer pipeline:
-
-```python
-from pydantic_scrape.graphs.search_answer import search_answer
-
-# One line to research any topic
-result = await search_answer(
-    query="Ivermectin working as a treatment for Cancer",
-    max_search_results=5
-)
-
-# Rich structured output with sources
-print(f"✅ Found {result['processing_stats']['search_results']} sources")
-print(f"📝 Answer: {result['answer']['answer']}")
-print(f"💡 Key insights: {len(result['answer']['key_insights'])}")
-print(f"📚 Sources: {len(result['answer']['sources'])}")
-```
-
-**What it does:**
-1. 🔍 **Intelligent search** - Finds relevant academic papers and articles
-2. 📄 **Content synthesis** - Combines multiple sources into comprehensive summaries  
-3. 🎯 **Answer generation** - Creates structured answers with key insights and sources
-4. ⚡ **Fast execution** - Complete research workflow in ~10 seconds
-
-## Core Architecture: Agents + Dependencies + Graphs
-
-Pydantic Scrape follows a clean three-layer architecture:
-
-### 🤖 **Agents** - AI-powered workers
-```python
-# Intelligent search agent
-from pydantic_scrape.agents.search import search_agent
-
-# AI summarization agent  
-from pydantic_scrape.agents.summarization import summarize_content
-
-# Dynamic scraping agent
-from pydantic_scrape.agents.bs4_scrape_script_agent import get_bs4_scrape_script_agent
-```
-
-### 🔧 **Dependencies** - Reusable components
-```python
-# Content fetching with browser automation
-from pydantic_scrape.dependencies.fetch import FetchDependency
-
-# Academic API integrations
-from pydantic_scrape.dependencies.openalex import OpenAlexDependency
-from pydantic_scrape.dependencies.crossref import CrossrefDependency
-
-# Content analysis and extraction
-from pydantic_scrape.dependencies.content_analysis import ContentAnalysisDependency
-```
-
-### 📊 **Graphs** - Workflow orchestration
-```python
-# Fast search → answer workflow
-from pydantic_scrape.graphs.search_answer import search_answer_graph
-
-# Complete science paper extraction
-from pydantic_scrape.graphs.science import science_graph
-
-# Dynamic scraping workflows
-from pydantic_scrape.graphs.dynamic_scrape import dynamic_scrape_graph
-```
-
-## 🔬 Example: AI Content Summarization
-
-Create structured summaries from any content:
-
-```python
-from pydantic_scrape.agents.summarization import summarize_content
-
-# Single document
-summary = await summarize_content(
-    "Machine learning advances in 2024 have focused on efficiency and safety...",
-    max_length=1000
-)
-
-print(f"Title: {summary.title}")
-print(f"Summary: {summary.summary}")
-print(f"Key findings: {summary.key_findings}")
-print(f"Confidence: {summary.confidence_score}")
-
-# Multiple documents (returns comprehensive summary)
-combined_summary = await summarize_content([
-    doc1, doc2, doc3  # List of content objects
-])
-```
-
-## 🧩 Example: Custom Dependency
-
-Build reusable components for specific content types:
-
-```python
-from dataclasses import dataclass
-from typing import Optional
-from pydantic import BaseModel
-
-class TwitterContent(BaseModel):
-    tweet_text: str
-    author: str
-    likes: int
-    retweets: int
-
-@dataclass  
-class TwitterDependency:
-    """Extract structured data from Twitter/X"""
-    
-    def __init__(self, api_key: str):
-        self.api_key = api_key
-    
-    async def extract_tweet_data(self, url: str) -> TwitterContent:
-        # Custom extraction logic here
-        pass
-```
-
-## 📈 Example: Custom Graph Workflow
-
-Compose agents and dependencies into intelligent workflows:
-
-```python
-from dataclasses import dataclass
-from typing import Union
-from pydantic_graph import BaseNode, Graph, GraphRunContext, End
-
-@dataclass
-class ResearchState:
-    query: str
-    sources_found: list = None
-    summaries: list = None
-    final_report: str = None
-
-@dataclass
-class ResearchDeps:
-    search: SearchDependency
-    summarizer: SummarizationDependency
-    
-@dataclass
-class SearchNode(BaseNode[ResearchState, ResearchDeps, Union["SummarizeNode", End]]):
-    async def run(self, ctx: GraphRunContext[ResearchState, ResearchDeps]):
-        sources = await ctx.deps.search.find_sources(ctx.state.query)
-        if not sources:
-            return End({"error": "No sources found"})
-        
-        ctx.state.sources_found = sources
-        return SummarizeNode()
-
-# Assemble the graph
-research_graph = Graph(nodes=[SearchNode, SummarizeNode, ReportNode])
-```
-
-## 🛠️ Installation
-
-### Development Installation
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/pydantic-scrape.git
-cd pydantic-scrape
-
-# Install with development dependencies (using uv for speed)
-uv pip install -e ".[dev]"
-# or with pip
-pip install -e ".[dev]"
-
-# Set up environment variables
-cp .env.example .env
-# Add your API keys (OPENAI_API_KEY, etc.)
-```
-
-## 🧪 Comprehensive Testing & Validation
-
-**✅ ALL 4 CORE GRAPHS TESTED AND OPERATIONAL!**
-
-Run the complete test suite:
+## Installation
 
 ```bash
-# Test all 4 graphs with real examples
-python test_all_graphs.py
+# Standard installation
+pip install pydantic-scrape
 
-# Results: 4/4 graphs passing in ~90 seconds
-# ✅ Search → Answer: Research workflow (32.9s)
-# ✅ Dynamic AI Scraping: Extract from any site (12.4s)  
-# ✅ Complete Science Scraping: Full academic processing (20.0s)
-# ✅ Search → Scrape → Answer: Advanced research pipeline (29.0s)
+# With development tools (if contributing)
+pip install pydantic-scrape[dev]
 ```
 
-**🎯 Framework Capabilities Demonstrated:**
-- 🔍 **Fast Research** - Search academic sources and generate comprehensive answers
-- 🤖 **AI Extraction** - Dynamically extract structured data from any website using AI agents
-- 📄 **Science Processing** - Complete academic paper processing with metadata enrichment
-- 🔬 **Deep Research** - Advanced pipeline that searches, scrapes full content, and synthesizes answers
+## Quick Start
 
-### Quick Individual Tests
+Get a comprehensive research answer in under 10 lines:
 
-```bash
-# Test search-answer workflow
-python -c "
+```python
 import asyncio
 from pydantic_scrape.graphs.search_answer import search_answer
 
-async def test():
-    result = await search_answer('latest advances in quantum computing')
-    print(f'Found {len(result[\"answer\"][\"sources\"])} sources')
-    print(result['answer']['answer'][:200] + '...')
-
-asyncio.run(test())
-"
-
-# Test summarization agent
-python -c "
-import asyncio
-from pydantic_scrape.agents.summarization import summarize_content
-
-async def test():
-    summary = await summarize_content(
-        'Artificial intelligence is transforming scientific research...'
+async def research():
+    result = await search_answer(
+        query="latest advances in quantum computing",
+        max_search_results=5
     )
-    print(f'Summary: {summary.summary}')
+    
+    print(f"Found {len(result['answer']['sources'])} sources")
+    print(result['answer']['answer'])
 
-asyncio.run(test())
-"
+asyncio.run(research())
 ```
 
-## 🤝 Contributing - We Need Your Help!
+This searches academic sources, extracts content, and generates a structured answer with citations - all automatically.
 
-We're building the future of intelligent web scraping and **we want you to be part of it!** 
+## Core Features
 
-### 🎯 What We're Looking For
+### 🔍 Smart Content Extraction
+```python
+from pydantic_scrape.dependencies.fetch import fetch_url
 
-#### 🤖 **Agent Builders**
-Create specialized AI agents for:
-- **Domain-specific extraction** (legal docs, medical papers, financial reports)
-- **Multi-modal content** (image + text analysis, video transcription)
-- **Real-time processing** (news monitoring, social media tracking)
-- **Quality assurance** (fact-checking, source verification)
+# Automatically handles JavaScript, selects best extraction method
+content = await fetch_url("https://example.com/article")
+print(content.title, content.text, content.metadata)
+```
 
-#### 🔧 **Dependency Developers**  
-Build reusable components for:
-- **API integrations** (Google Scholar, PubMed, arXiv, GitHub, social platforms)
-- **Content processors** (PDF extraction, video analysis, image recognition)
-- **Data enrichment** (NLP analysis, metadata extraction, classification)
-- **Storage & caching** (vector databases, knowledge graphs, search indices)
+### 🤖 AI-Powered Scraping
+```python
+from pydantic_scrape.agents.bs4_scrape_script_agent import get_bs4_scrape_script_agent
 
-#### 📊 **Graph Architects**
-Design intelligent workflows for:
-- **Research pipelines** (literature review, systematic analysis, meta-analysis)
-- **Content monitoring** (news tracking, social listening, trend analysis)
-- **Knowledge extraction** (entity recognition, relationship mapping, fact extraction)
-- **Quality control** (validation, verification, bias detection)
+# AI writes the scraping code for you
+agent = get_bs4_scrape_script_agent()
+result = await agent.run_sync("Extract product prices from this e-commerce page", 
+                              html_content=page_html)
+```
 
-### 🚀 Getting Started as a Contributor
+### 📚 Academic Research
+```python
+from pydantic_scrape.dependencies.openalex import OpenAlexDependency
+
+# Search papers by topic, author, or DOI
+openalex = OpenAlexDependency()
+papers = await openalex.search_papers("machine learning healthcare")
+```
+
+### 📄 Document Processing
+```python
+from pydantic_scrape.dependencies.document import DocumentDependency
+
+# Extract text from PDFs, Word docs, EPUBs
+doc = DocumentDependency()
+content = await doc.extract_text("research_paper.pdf")
+```
+
+## Common Use Cases
+
+- **Literature Reviews** - Automatically search, extract, and summarize academic papers
+- **Market Research** - Monitor competitor content, pricing, and product updates  
+- **News Monitoring** - Track mentions, trends, and breaking news across sources
+- **Content Migration** - Extract structured data from legacy systems or websites
+- **Research Workflows** - Build custom pipelines for domain-specific content extraction
+
+## Architecture
+
+Pydantic Scrape organizes code into three layers:
+
+- **Dependencies** (`pydantic_scrape.dependencies.*`) - Reusable components for specific tasks
+- **Agents** (`pydantic_scrape.agents.*`) - AI-powered workers that make decisions  
+- **Graphs** (`pydantic_scrape.graphs.*`) - Orchestrate multi-step workflows
+
+This makes it easy to compose complex workflows from simple, tested components.
+
+## Configuration
+
+Set your API keys in a `.env` file:
 
 ```bash
-# 1. Fork and clone
-git clone https://github.com/yourusername/pydantic-scrape.git
-cd pydantic-scrape
-
-# 2. Install development dependencies  
-uv pip install -e ".[dev]"
-
-# 3. Test current functionality
-python test_search_answer.py  # Should work out of the box
-
-# 4. Check the current structure
-ls pydantic_scrape/agents/      # See existing agents
-ls pydantic_scrape/dependencies/ # See existing dependencies  
-ls pydantic_scrape/graphs/       # See existing graphs
-
-# 5. Start building!
+OPENAI_API_KEY=your_openai_key
+GOOGLE_GENAI_API_KEY=your_google_key  
+ANTHROPIC_API_KEY=your_anthropic_key
 ```
 
-### 💡 Contribution Ideas
+Most features work with any of these providers. The framework automatically selects the best model for each task.
 
-**Easy wins for new contributors:**
-- Add a new academic API (NASA ADS, bioRxiv, SSRN)
-- Create a social media dependency (Reddit, LinkedIn, Mastodon)
-- Build a specialized graph for a domain (legal research, patent analysis)
-- Add content format support (EPUB, Markdown, slides)
+## Documentation
 
-**Advanced challenges:**
-- Multi-agent coordination for complex research tasks
-- Real-time streaming workflows with live updates
-- Advanced caching and optimization strategies  
-- Cross-language content extraction and translation
+- [Installation Guide](INSTALLATION.md) - Detailed setup instructions
+- [Examples](examples/) - Working code samples for common tasks
+- [API Reference](https://github.com/philmade/pydantic_scrape) - Full documentation
 
-### 🌟 Community & Support
+## Contributing
 
-- 🐛 **Found a bug?** [Open an issue](https://github.com/yourusername/pydantic-scrape/issues) with reproduction steps
-- 💡 **Have an idea?** [Start a discussion](https://github.com/yourusername/pydantic-scrape/discussions) about new features
-- 🔧 **Ready to contribute?** Check out our [contribution guidelines](CONTRIBUTING.md)
-- 📧 **Questions?** Reach out to the maintainers
+We welcome contributions! The framework is designed to be extensible - add new content sources, AI agents, or workflow patterns.
 
-## 📋 Core Dependencies
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
-- **AI Framework**: [pydantic-ai](https://github.com/pydantic/pydantic-ai) - Type-safe AI agents with structured outputs
-- **Workflow Engine**: [pydantic-graph](https://github.com/pydantic/pydantic-graph) - Graph-based workflow orchestration  
-- **Browser Automation**: [Camoufox](https://github.com/daijro/camoufox) - Undetectable browser automation
-- **Content Processing**: BeautifulSoup4, newspaper3k, pypdf
-- **Academic APIs**: Integration with OpenAlex, Crossref, arXiv
+## License
 
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-## 🎉 Join Us!
-
-Pydantic Scrape is more than a framework - it's a community building the next generation of intelligent web scraping tools. Whether you're a researcher, developer, data scientist, or domain expert, there's a place for you here.
-
-**Let's build something amazing together!** 🚀
-
-[![Stars](https://img.shields.io/github/stars/philmade/pydantic_scrape?style=social)](https://github.com/philmade/pydantic_scrape)
-[![Forks](https://img.shields.io/github/forks/philmade/pydantic_scrape?style=social)](https://github.com/philmade/pydantic_scrape)
-[![Issues](https://img.shields.io/github/issues/philmade/pydantic_scrape)](https://github.com/philmade/pydantic_scrape/issues)
-[![Contributors](https://img.shields.io/github/contributors/philmade/pydantic_scrape)](https://github.com/philmade/pydantic_scrape/graphs/contributors)
+**Ready to build intelligent scraping workflows?** Start with `pip install pydantic-scrape` and try the examples above.
