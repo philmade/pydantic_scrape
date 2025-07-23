@@ -19,7 +19,7 @@ from .services.download_service import DownloadService
 from .services.transcription_service import TranscriptionService, TranscriptionResult
 
 load_dotenv()
-__version__ = "0.1.0"
+__version__ = "0.1.2"
 __all__ = [
     "FetchResult",
 ]

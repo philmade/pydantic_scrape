@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pydantic-scrape"
-version = "0.1.0"
+version = "0.1.2"
 description = "A modular web scraping framework using pydantic-ai and pydantic-graph with intelligent caching"
 readme = "README.md"
 license = {text = "MIT"}
@@ -27,13 +27,21 @@ keywords = ["scraping", "web-scraping", "pydantic", "camoufox", "automation"]
 requires-python = ">=3.10"
 
 dependencies = [
+    # Core framework dependencies
     "pydantic-ai>=0.2.11",
     "pydantic-graph>=0.2.11",
-    "camoufox>=0.4.11",
     "loguru>=0.7.3",
+    "python-dotenv",
+    "httpx>=0.24.0",
+    "platformdirs>=3.0.0",
+    # Core scraping dependencies
+    "camoufox>=0.4.11",
     "newspaper3k>=0.2.8",
     "beautifulsoup4>=4.13.0",
-    "httpx>=0.24.0",
+    "lxml>=4.9.0",
+    "lxml_html_clean>=0.1.0",
+    # Dependencies currently required by __init__.py imports
+    # TODO: These should be made optional with conditional imports
     "pyalex>=0.17",
     "habanero>=1.2.6",
     "goose3>=3.1.19",
@@ -41,22 +49,30 @@ dependencies = [
     "python-docx>=1.1.0",
     "EbookLib>=0.19",
     "yt-dlp>=2023.12.30",
-    "lxml>=4.9.0",
-    "lxml_html_clean>=0.1.0",
-    "rapidfuzz",
-    "python-dotenv",
     "google-generativeai>=0.3.0",
     "openai>=1.0.0",
-    "platformdirs>=3.0.0",
-    "searchthescience>=1.0.0",
+    "rapidfuzz",
+    # Note: searchthescience is not available on PyPI
+    # Remove from dependencies until available or made optional
 ]
 
 [project.optional-dependencies]
+# Note: Due to current architecture with unconditional imports,
+# most dependencies are required in the main dependencies list.
+# Future versions will support truly optional dependencies.
+
+# All optional extras combined (currently empty due to architecture constraints)
+all = [
+]
+
+# Development dependencies
 dev = [
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
     "black>=23.0.0",
     "ruff>=0.1.0",
+    "build>=1.0.0",
+    "twine>=4.0.0",
 ]
 
 [project.urls]

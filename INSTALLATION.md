@@ -7,53 +7,54 @@ This guide explains how to install pydantic-scrape with different dependency con
 For full functionality including YouTube processing, document handling, and academic research:
 
 ```bash
-pip install -r requirements.txt
+pip install pydantic-scrape
 ```
 
-## Modular Installation
+## PyPI Installation with Optional Dependencies
 
-### Core Scraping Only
+Currently, due to the package's architecture with unconditional imports, all major dependencies are required. However, the package supports these installation patterns:
 
-For basic web scraping with camoufox browser automation:
+### Standard Installation
+```bash
+pip install pydantic-scrape
+```
 
+### Development Installation  
+```bash
+pip install pydantic-scrape[dev]
+```
+
+**Development extras include:**
+- pytest (testing framework)
+- black (code formatting)
+- ruff (linting) 
+- build & twine (packaging tools)
+
+## Local Development with Requirements Files
+
+For local development and testing, you can use the modular requirements files:
+
+### Core Scraping (Local Development)
 ```bash
 pip install -r requirements-core.txt
 ```
 
-**Includes:**
-- Web scraping with camoufox + newspaper3k + BeautifulSoup
-- AI-powered content extraction 
-- Document processing (PDF, DOCX, EPUB)
-- Academic research (OpenAlex, Crossref)
-- YouTube video processing
-- All core framework dependencies
-
-### Academic Research Extensions
-
-For additional scientific search capabilities:
-
-```bash
+### Academic Research Extensions (Local Development)
+```bash  
 pip install -r requirements-academic.txt
 ```
 
-**Adds:**
-- searchthescience library for enhanced scientific search
-
-### YouTube Processing
-
-YouTube functionality is already included in core requirements.
-
+### YouTube Processing (Local Development)
 ```bash
-pip install -r requirements-youtube.txt  # Same as core
+pip install -r requirements-youtube.txt
 ```
 
-### Document Processing 
-
-Document processing is already included in core requirements.
-
+### Document Processing (Local Development)
 ```bash
-pip install -r requirements-documents.txt  # Same as core
+pip install -r requirements-documents.txt
 ```
+
+**Note:** Due to current architecture constraints with unconditional imports, most functionality requires the full dependency set. Future versions will support truly optional dependencies.
 
 ## Testing Your Installation
 
