@@ -8,9 +8,15 @@ import asyncio
 import base64
 from typing import Any, Dict, List, Optional
 
-from camoufox.async_api import AsyncCamoufox
 from loguru import logger
 from mcp.server.fastmcp import FastMCP
+
+try:
+    from camoufox.async_api import AsyncCamoufox
+    CAMOUFOX_AVAILABLE = True
+except ImportError:
+    CAMOUFOX_AVAILABLE = False
+    AsyncCamoufox = None
 
 
 class CamoufoxBrowserManager:

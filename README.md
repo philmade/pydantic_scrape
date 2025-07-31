@@ -19,18 +19,27 @@ Pydantic Scrape bridges this gap by providing:
 
 Pydantic Scrape uses [Chawan](https://sr.ht/~bptato/chawan/) for advanced web automation and JavaScript-heavy sites.
 
-**macOS (Homebrew):**
+**Option 1: Homebrew (macOS) - Stable Release**
 ```bash
 brew install chawan
 ```
 
-**Linux (from source):**
+**Option 2: From Source - Latest Development Version**
 ```bash
-# Install Nim compiler
-curl https://nim-lang.org/choosenim/init.sh -sSf | sh
-# Install Chawan
+# Install Nim compiler (if not already installed)
+brew install nim  # macOS
+# OR for Linux: curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
+
+# Build latest Chawan from source
 git clone https://git.sr.ht/~bptato/chawan
-cd chawan && make && sudo make install
+cd chawan && make
+
+# Install locally (recommended for development)
+mkdir -p ~/.local/bin ~/.local/libexec
+cp target/release/bin/cha ~/.local/bin/
+cp -r target/release/libexec/chawan ~/.local/libexec/
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
 ```
 
 **Verify installation:**
@@ -40,11 +49,33 @@ cha --version
 
 ### 2. Install Pydantic Scrape
 
+**Lean Installation (Recommended)**
 ```bash
-# Standard installation
+# Core functionality only (~50MB)
 pip install pydantic-scrape
+```
 
-# With development tools (if contributing)
+**Extended Installation with Optional Features**
+```bash
+# YouTube video processing
+pip install pydantic-scrape[youtube]
+
+# AI services (OpenAI, Google AI)  
+pip install pydantic-scrape[ai]
+
+# Academic research (OpenAlex, CrossRef)
+pip install pydantic-scrape[academic]
+
+# Document processing (PDF, Word, eBooks)
+pip install pydantic-scrape[documents]
+
+# Advanced content extraction
+pip install pydantic-scrape[content]
+
+# Everything included (~300MB)
+pip install pydantic-scrape[all]
+
+# Development tools (if contributing)
 pip install pydantic-scrape[dev]
 ```
 

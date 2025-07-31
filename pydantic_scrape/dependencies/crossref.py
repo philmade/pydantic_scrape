@@ -3,7 +3,6 @@
 from dataclasses import asdict, dataclass
 from typing import Any, Dict, List, Optional
 
-from habanero import Crossref
 from loguru import logger
 
 

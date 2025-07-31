@@ -4,7 +4,6 @@ from dataclasses import asdict, dataclass
 from typing import Any, Dict, List, Optional
 
 from loguru import logger
-from pyalex import Works
 from rapidfuzz import fuzz
 
 

@@ -6,14 +6,25 @@ Manages browser state within the agent lifecycle rather than through MCP.
 
 from typing import Any, Optional
 
-from camoufox.async_api import AsyncCamoufox
 from loguru import logger
+
+try:
+    from camoufox.async_api import AsyncCamoufox
+    CAMOUFOX_AVAILABLE = True
+except ImportError:
+    CAMOUFOX_AVAILABLE = False
+    AsyncCamoufox = None
 
 
 class CamoufoxToolset:
     """Direct browser automation toolset with lifecycle management"""
 
     def __init__(self, headless: bool = False):
+        if not CAMOUFOX_AVAILABLE:
+            raise ImportError(
+                "Camoufox is not available. Install with: pip install pydantic-scrape[camoufox]\n"
+                "Note: Camoufox is now legacy - consider using Chawan browser instead."
+            )
         self._camoufox_instance: Optional[AsyncCamoufox] = None
         self._browser: Optional[Any] = None
         self._page: Optional[Any] = None

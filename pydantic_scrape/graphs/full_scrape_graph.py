@@ -17,9 +17,15 @@ from contextlib import asynccontextmanager
 from dataclasses import asdict, dataclass
 from typing import Any, Dict, List, Optional, Union
 
-from camoufox.async_api import AsyncCamoufox
 from loguru import logger
 from pydantic import BaseModel, Field
+
+try:
+    from camoufox.async_api import AsyncCamoufox
+    CAMOUFOX_AVAILABLE = True
+except ImportError:
+    CAMOUFOX_AVAILABLE = False
+    AsyncCamoufox = None
 from pydantic_graph import BaseNode, End, Graph, GraphRunContext
 
 from pydantic_scrape.dependencies import (

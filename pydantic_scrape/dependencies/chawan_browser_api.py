@@ -123,6 +123,29 @@ class ChawanBrowser:
         env = os.environ.copy()
         env["CHA_DIR"] = self.chawan_config_dir
         return env
+    
+    def _get_config_path(self) -> str:
+        """Get the correct config.toml path based on environment or default"""
+        # Check if CHA_DIR is set in environment (server deployment)
+        cha_dir = os.environ.get("CHA_DIR")
+        if cha_dir:
+            config_path = os.path.join(cha_dir, "config.toml")
+            if os.path.exists(config_path):
+                self.log(f"🔧 Using CHA_DIR config: {config_path}")
+                return config_path
+            else:
+                self.log(f"⚠️  CHA_DIR set but config not found: {config_path}")
+        
+        # Fallback to project-specific config
+        project_config = "/Users/phill/Documents/pydantic-scrape/.chawan/config.toml"
+        if os.path.exists(project_config):
+            self.log(f"🔧 Using project config: {project_config}")
+            return project_config
+            
+        # Last fallback to workspace config
+        workspace_config = os.path.join(self.chawan_config_dir, "config.toml")
+        self.log(f"🔧 Using workspace config: {workspace_config}")
+        return workspace_config
 
     def log(self, message: str, level: str = "INFO"):
         """Debug logging with levels"""
@@ -321,7 +344,7 @@ class ChawanBrowser:
 
             # OPTIMIZATION: Get content directly and cache it for future get_content() calls
             self.log(f"📄 Getting fresh content for: {url}")
-            config_path = "/Users/phill/Documents/pydantic-scrape/.chawan/config.toml"
+            config_path = self._get_config_path()
             result = subprocess.run(
                 ["cha", "-C", config_path, "-o", "start.console-buffer=false", url],
                 capture_output=True,
@@ -398,7 +421,7 @@ class ChawanBrowser:
 
             # Read from stdout buffer (this is tricky with interactive process)
             # For now, fallback to subprocess but cache result
-            config_path = "/Users/phill/Documents/pydantic-scrape/.chawan/config.toml"
+            config_path = self._get_config_path()
             result = subprocess.run(
                 ["cha", "-C", config_path, "-o", "start.console-buffer=false", self.current_url],
                 capture_output=True,
@@ -442,7 +465,7 @@ class ChawanBrowser:
             self.log(f"👁️  Getting AI view of page: {self.current_url}")
 
             # Use breakthrough config with scripting='app' for full content access
-            config_path = "/Users/phill/Documents/pydantic-scrape/.chawan/config.toml"
+            config_path = self._get_config_path()
             result = subprocess.run(
                 ["cha", "-C", config_path, "-o", "start.console-buffer=false", self.current_url],
                 capture_output=True,
@@ -495,7 +518,7 @@ class ChawanBrowser:
             self.log(f"🔗 Extracting content with link index from: {self.current_url}")
 
             # Use breakthrough config for real content access
-            config_path = "/Users/phill/Documents/pydantic-scrape/.chawan/config.toml"
+            config_path = self._get_config_path()
             result = subprocess.run(
                 ["cha", "-C", config_path, "-o", "start.console-buffer=false", self.current_url],
                 capture_output=True,

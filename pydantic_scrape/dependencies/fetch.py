@@ -6,9 +6,21 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 import httpx
-from camoufox.async_api import AsyncCamoufox
 from loguru import logger
-from newspaper import Article
+
+try:
+    from camoufox.async_api import AsyncCamoufox
+    CAMOUFOX_AVAILABLE = True
+except ImportError:
+    CAMOUFOX_AVAILABLE = False
+    AsyncCamoufox = None
+
+try:
+    from newspaper import Article
+    NEWSPAPER_AVAILABLE = True
+except ImportError:
+    NEWSPAPER_AVAILABLE = False
+    Article = None
 
 
 @dataclass

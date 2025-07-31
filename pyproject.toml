@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pydantic-scrape"
-version = "0.1.2"
-description = "A modular web scraping framework using pydantic-ai and pydantic-graph with intelligent caching"
+version = "0.2.2"
+description = "Advanced web automation framework with AI-powered agents, Chawan terminal browser integration, and geographic search targeting"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
@@ -23,7 +23,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Text Processing :: Markup :: HTML",
 ]
-keywords = ["scraping", "web-scraping", "pydantic", "camoufox", "automation"]
+keywords = ["scraping", "web-scraping", "pydantic", "chawan", "automation", "browser-automation", "ai-agents", "geographic-search"]
 requires-python = ">=3.10"
 
 dependencies = [
@@ -34,35 +34,62 @@ dependencies = [
     "python-dotenv",
     "httpx>=0.24.0",
     "platformdirs>=3.0.0",
-    # Core scraping dependencies
-    "camoufox>=0.4.11",
-    "newspaper3k>=0.2.8",
+    # Core scraping dependencies (lightweight)
     "beautifulsoup4>=4.13.0",
     "lxml>=4.9.0",
     "lxml_html_clean>=0.1.0",
-    # Dependencies currently required by __init__.py imports
-    # TODO: These should be made optional with conditional imports
-    "pyalex>=0.17",
-    "habanero>=1.2.6",
-    "goose3>=3.1.19",
-    "PyMuPDF>=1.25.0",
-    "python-docx>=1.1.0",
-    "EbookLib>=0.19",
-    "yt-dlp>=2023.12.30",
-    "google-generativeai>=0.3.0",
-    "openai>=1.0.0",
     "rapidfuzz",
-    # Note: searchthescience is not available on PyPI
-    # Remove from dependencies until available or made optional
 ]
 
 [project.optional-dependencies]
-# Note: Due to current architecture with unconditional imports,
-# most dependencies are required in the main dependencies list.
-# Future versions will support truly optional dependencies.
+# YouTube video downloading and processing
+youtube = [
+    "yt-dlp>=2023.12.30",
+]
 
-# All optional extras combined (currently empty due to architecture constraints)
+# AI services (OpenAI, Google AI)
+ai = [
+    "openai>=1.0.0",
+    "google-generativeai>=0.3.0",
+]
+
+# Academic research (papers, CrossRef)
+academic = [
+    "pyalex>=0.17",
+    "habanero>=1.2.6",
+]
+
+# Document processing (PDFs, Word, eBooks)
+documents = [
+    "PyMuPDF>=1.25.0",
+    "python-docx>=1.1.0",
+    "EbookLib>=0.19",
+]
+
+# Content extraction (advanced article extraction)
+content = [
+    "goose3>=3.1.19",
+    "newspaper3k>=0.2.8",
+]
+
+# Legacy Camoufox browser (now replaced by Chawan)
+camoufox = [
+    "camoufox>=0.4.11",
+]
+
+# All optional extras combined
 all = [
+    "yt-dlp>=2023.12.30",
+    "openai>=1.0.0", 
+    "google-generativeai>=0.3.0",
+    "pyalex>=0.17",
+    "habanero>=1.2.6",
+    "PyMuPDF>=1.25.0",
+    "python-docx>=1.1.0",
+    "EbookLib>=0.19",
+    "goose3>=3.1.19",
+    "newspaper3k>=0.2.8",
+    "camoufox>=0.4.11",
 ]
 
 # Development dependencies

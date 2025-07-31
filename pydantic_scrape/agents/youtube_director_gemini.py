@@ -2,11 +2,20 @@ from dataclasses import dataclass
 from typing import List
 
 from dotenv import load_dotenv
-from google import genai as google_genai
-from google.genai.types import HttpOptions, Part
 from loguru import logger
+
 from pydantic import BaseModel
 from pydantic_ai import Agent
+
+try:
+    from google import genai as google_genai
+    from google.genai.types import HttpOptions, Part
+    GOOGLE_GENAI_AVAILABLE = True
+except ImportError:
+    GOOGLE_GENAI_AVAILABLE = False
+    google_genai = None
+    HttpOptions = None
+    Part = None
 
 load_dotenv()
 
