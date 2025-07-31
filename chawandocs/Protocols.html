@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<!-- saved from url=(0041)https://chawan.net/doc/cha/protocols.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+Chawan: Protocols
+</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="https://chawan.net/favicon.ico">
+<style>
+    /* layout */
+*           { box-sizing: border-box; border-width: 0 }
+body            { display: flex; flex-direction: column }
+body            { min-height: 100vh; margin: 0 auto }
+header          { max-width: 60ch; display: flex; flex-wrap: wrap }
+header a        { display: block; flex: 1; font-size: larger }
+main            { width: 72ch; margin: 1em auto }
+@media(width<72ch){main { width: 100% }                        }
+footer          { float: right; font-style: italic }
+main            { display: flow-root; padding: 0 1ch }
+h1, h2, h3, h4, h5, h6  { font-size: inherit }
+table           { border-spacing: .5ch 0; margin: 0 -1ch }
+figure, img     { max-width: 100%; margin: 0 }
+figure          { padding: 1em 0 0 0 }
+figcaption      { text-align: center }
+pre         { padding-left: 1ch }
+@media(grid:0){ h1  { padding: 1ch 0 0; margin: 0 }
+        td, th  { padding: .3ch 1ch }
+    code, pre   { font-size: 15px }     }
+    /* colors */
+*           { color: white }
+header a        { background: #204A50 }
+header a.current    { background: #192C30 }
+header a:hover      { background: #192930 }
+body            { background: #102527 }
+main            { background: #103C40 }
+main a[href]        { color: #FFC6CB }
+th, td          { background: #113134 }
+tr:nth-child(2n) > *    { background: #102628 }
+    /* decoration */
+a[href]         { text-decoration: none }
+a[href]:hover       { text-decoration: underline }
+header a[href]:hover    { text-decoration: none }
+</style>
+</head>
+<body>
+<center>
+<header>
+<a href="https://chawan.net/index.html">Index</a> <a href="https://chawan.net/news/index.html">News</a> <a href="https://chawan.net/doc/index.html">Docs</a> <a href="https://chawan.net/issues.html">Issues</a> <a href="https://sr.ht/~bptato/chawan">Source</a>
+</header>
+</center>
+<main>
+<!-- MANON
+% cha-protocols(7) | Protocol support in Chawan
+MANOFF -->
+<h1 id="protocols">Protocols</h1>
+<p>Chawan supports downloading resources from various protocols: HTTP,
+FTP, SFTP, Gopher, Gemini, Spartan, and Finger. Details on these
+protocols, and information on how users can add support to their
+preferred protocols is outlined in this document.</p>
+<p>You can find network adapters in the source distribution’s
+<code>adapter/protocol</code> directory. For protocol-specific file
+formats (like gemtext or gopher directories) you will also find an
+appropriate HTML converter in <code>adapter/format</code>.</p>
+<!-- MANOFF -->
+<p><strong>Table of contents</strong></p>
+<ul>
+<li><a href="https://chawan.net/doc/cha/protocols.html#http">HTTP</a></li>
+<li><a href="https://chawan.net/doc/cha/protocols.html#ftp">FTP</a></li>
+<li><a href="https://chawan.net/doc/cha/protocols.html#sftp">SFTP</a></li>
+<li><a href="https://chawan.net/doc/cha/protocols.html#gopher">Gopher</a></li>
+<li><a href="https://chawan.net/doc/cha/protocols.html#gemini">Gemini</a></li>
+<li><a href="https://chawan.net/doc/cha/protocols.html#finger">Finger</a></li>
+<li><a href="https://chawan.net/doc/cha/protocols.html#spartan">Spartan</a></li>
+<li><a href="https://chawan.net/doc/cha/protocols.html#local-schemes-file-man">Local schemes: file:,
+man:</a></li>
+<li><a href="https://chawan.net/doc/cha/protocols.html#internal-schemes-cgi-bin-stream-cache-data-about">Internal
+schemes: cgi-bin:, stream:, cache:, data:, about:</a></li>
+<li><a href="https://chawan.net/doc/cha/protocols.html#custom-protocols">Custom protocols</a></li>
+</ul>
+<!-- MANON -->
+<h2 id="http">HTTP</h2>
+<p>HTTP/s support is implemented in Nim. It supports HTTP/1.1 with
+arbitrary headers and POST data, is able to use passed userinfo data,
+and returns all headers and response body it receives without
+exception.</p>
+<p>Deflate decompression with gzip and zlib headers is supported.
+(Accept-Encoding: gzip, deflate.) This is based on a modified version of
+the public domain tinfl.h decompressor by Rich Geldreich.</p>
+<p>Brotli decompression (Accept-Encoding: br) is supported using the
+decoder provided by the reference implementation.</p>
+<p>The <code>bonus</code> directory contains two alternative HTTP
+clients:</p>
+<ul>
+<li><p>curlhttp; this is the old HTTP client based on libcurl. It can be
+built using curl-impersonate; see README.md in the bonus/ directory for
+details.</p></li>
+<li><p>libfetch-http: based on FreeBSD libfetch. It is mostly a proof of
+concept, as FreeBSD libfetch HTTP support is very limited; in
+particular, it does not support arbitrary HTTP headers, so e.g. cookies
+will not work.</p></li>
+</ul>
+<h2 id="ftp">FTP</h2>
+<p>Chawan supports FTP passive mode browsing and downloads.</p>
+<p>For directory listings, it assumes UNIX output style, and will
+probably break horribly on receiving anything else. Otherwise, the
+directory listing view is identical to the file:// directory
+listing.</p>
+<h2 id="sftp">SFTP</h2>
+<p>The sftp adapter (<code>adapter/protocol/sftp.nim</code>) wraps
+libssh2. It works for me, but YMMV.</p>
+<p>Note that if an IdentityFile declaration is found in your ssh config,
+then it will prompt for the identity file password, but there is no way
+to tell whether it is really asking for that (or just normal password
+auth). Also, settings covered by the Match field are ignored.</p>
+<h2 id="gopher">Gopher</h2>
+<p>Chawan supports the Gopher protocol through the gopher CGI program.
+Gopher directories are passed as the <code>text/gopher</code> type, and
+gopher2html takes care of converting this to HTML.</p>
+<p>Gopher selector types are converted to MIME types when possible; note
+however, that this is very limited, as most of them (like <code>s</code>
+sound, or <code>I</code> image) cannot be unambiguously converted
+without some other sniffing method. Chawan will fall back to
+extension-based detection in these cases, and in the worst case may end
+up with <code>application/octet-stream</code>.</p>
+<h2 id="gemini">Gemini</h2>
+<p>Chawan’s Gemini adapter has been rewritten as a Nim program. It still
+requires OpenSSL to work.</p>
+<p>A limitation that remains is that the Gemini adapter does not support
+sites that require private key authentication.</p>
+<p>gmi2html is its companion program to convert the
+<code>text/gemini</code> file format to HTML.</p>
+<h2 id="finger">Finger</h2>
+<p>Finger is supported through the <code>finger</code> shell script. It
+is implemented as a shell script because of the protocol’s
+simplicity.</p>
+<p>For portability, <code>finger</code> uses Chawan’s <code>nc</code>
+tool (a very limited netcat clone) to make requests.</p>
+<h2 id="spartan">Spartan</h2>
+<p>Spartan is a protocol similar to Gemini, but without TLS. It is
+supported through the <code>spartan</code> shell script, and like
+Finger, it uses Chawan’s <code>nc</code> to make requests.</p>
+<p>Spartan has the very strange property of extending gemtext with a
+protocol-specific line type. This is sort of supported through a sed
+filter for gemtext outputs in the CGI script (in other words, no
+modification to gmi2html was done to support this).</p>
+<h2 id="local-schemes-file-man">Local schemes: file:, man:</h2>
+<p>While these are not necessarily <em>protocols</em>, they are
+implemented similarly to the protocols listed above (and thus can also
+be replaced, if the user wishes; see below).</p>
+<p><code>file:</code> loads a file from the local filesystem. In case of
+directories, it shows the directory listing like the FTP protocol
+does.</p>
+<p><code>man:</code>, <code>man-k:</code> and <code>man-l:</code> are
+wrappers around the commands <code>man</code>, <code>man -k</code> and
+<code>man -l</code>. These look up man pages using
+<code>/usr/bin/man</code> and turn on-page references into links. A
+wrapper command <code>mancha</code> also exists; this has an interface
+similar to <code>man</code>. Note: this used to be based on
+w3mman2html.cgi, but it has been rewritten in Nim (and therefore no
+longer depends on Perl either).</p>
+<h2 id="internal-schemes-cgi-bin-stream-cache-data-about">Internal
+schemes: cgi-bin:, stream:, cache:, data:, about:</h2>
+<p>Five internal protocols exist: <code>cgi-bin:</code>,
+<code>stream:</code>, <code>cache:</code>, <code>data:</code> and
+<code>about:</code>. These are the basic building blocks for the
+implementation of every protocol mentioned above; for this reason, these
+can <em>not</em> be replaced, and are implemented in the main browser
+binary.</p>
+<p><code>cgi-bin:</code> executes a local CGI script. This scheme is
+used for the actual implementation of the non-internal protocols
+mentioned above. Local CGI scripts can also be used to implement
+wrappers of other programs inside Chawan (e.g.&nbsp;dictionaries).</p>
+<p><code>stream:</code> is used for streams returned by external
+programs. It differs from <code>cgi-bin:</code> in that it does not
+cooperate with the external process, and that the loader does not keep
+track of where the stream originally comes from. Therefore it is
+suitable for reading in the output of mailcap entries, or for turning
+stdin into a URL.</p>
+<p>It is not possible to reload <code>stream:</code> URLs. To support
+rewinding and “view source”, the output of <code>stream:</code>’s is
+stored in a cache file until the buffer is discarded.</p>
+<p><code>cache:</code> is not something an end user would normally see;
+it’s used for rewinding or re-interpreting streams already
+downloaded.</p>
+<p>Caching works differently than in most other browsers; files are
+deterministically loaded from the cache upon certain actions, and from
+the network upon others, but neither is used as a fallback to the
+other.</p>
+<p><code>data:</code> decodes a data URL as defined in RFC 2397. This
+used to be a CGI module, but has been moved back into the loader process
+because these URLs can get so long that they no longer fit into the
+environment.</p>
+<p><code>about:</code> is inside the loader to allow for an
+implementation of the download list panel. It should be turned into a
+CGI module once the loader gets RPC capabilities.</p>
+<p>The following about pages are available: <code>about:chawan</code>,
+<code>about:blank</code>, <code>about:license</code>,
+<code>about:download</code>.</p>
+<h2 id="custom-protocols">Custom protocols</h2>
+<p>Chawan is protocol-agnostic. This means that the <code>cha</code>
+binary itself does not know much about the protocols listed above;
+instead, it loads these through a combination of <a href="https://chawan.net/doc/cha/localcgi.html">local CGI</a>, <a href="https://chawan.net/doc/cha/urimethodmap.html">urimethodmap</a>, and if conversion to HTML or
+plain text is necessary, <a href="https://chawan.net/doc/cha/mailcap.html">mailcap</a> (using
+x-htmloutput, x-ansioutput and copiousoutput).</p>
+<p>urimethodmap can also be used to override default handlers for the
+protocols listed above. This is similar to how w3m allows you to
+override the default directory listing display, but much more powerful;
+this way, any library or program that can retrieve and output text
+through a certain protocol can be combined with Chawan.</p>
+<p>For example, consider the urimethodmap definition of cha-finger:</p>
+<pre><code>finger:     cgi-bin:cha-finger</code></pre>
+<p>This commands Chawan to load the cha-finger CGI script, setting the
+<code>$MAPPED_URI_*</code> variables to the target URL’s parts in the
+process.</p>
+<p>Then, cha-finger uses these passed parts to construct an appropriate
+curl command that will retrieve the specified <code>finger:</code> URL;
+it prints the header ‘Content-Type: text/plain’ to the output, then an
+empty line, then the body of the retrieved resource. If an error is
+encountered, it prints a <code>Cha-Control</code> header with an error
+code and a specific error message instead.</p>
+<h3 id="adding-a-new-protocol">Adding a new protocol</h3>
+<p>Here we will add a protocol called “cowsay”, so that the URL
+cowsay:text prints the output of <code>cowsay text</code> after a second
+of waiting.</p>
+<p><code>mkdir -p ~/.chawan/cgi-bin</code>, and create a CGI script in
+<code>~/.chawan/cgi-bin/cowsay.cgi</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="https://chawan.net/doc/cha/protocols.html#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/sh</span></span>
+<span id="cb2-2"><a href="https://chawan.net/doc/cha/protocols.html#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># We are going to wait a second from now, but want Chawan to show</span></span>
+<span id="cb2-3"><a href="https://chawan.net/doc/cha/protocols.html#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># "Downloading..." instead of "Connecting...". So signal to the browser that the</span></span>
+<span id="cb2-4"><a href="https://chawan.net/doc/cha/protocols.html#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># connection has succeeded.</span></span>
+<span id="cb2-5"><a href="https://chawan.net/doc/cha/protocols.html#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="bu">printf</span> <span class="st">'Cha-Control: Connected\n'</span></span>
+<span id="cb2-6"><a href="https://chawan.net/doc/cha/protocols.html#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">sleep</span> 1 <span class="co"># sleep</span></span>
+<span id="cb2-7"><a href="https://chawan.net/doc/cha/protocols.html#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Status is a special header that signals the equivalent HTTP status code.</span></span>
+<span id="cb2-8"><a href="https://chawan.net/doc/cha/protocols.html#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="bu">printf</span> <span class="st">'Status: 200'</span> <span class="co"># HTTP OK</span></span>
+<span id="cb2-9"><a href="https://chawan.net/doc/cha/protocols.html#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Tell the browser that no more control headers are to be expected.</span></span>
+<span id="cb2-10"><a href="https://chawan.net/doc/cha/protocols.html#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># This is useful when you want to send remotely received headers; then, it would</span></span>
+<span id="cb2-11"><a href="https://chawan.net/doc/cha/protocols.html#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># be an attack vector to simply send the headers without ControlDone, as nothing</span></span>
+<span id="cb2-12"><a href="https://chawan.net/doc/cha/protocols.html#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># stops the website from sending a Cha-Control header. With ControlDone sent,</span></span>
+<span id="cb2-13"><a href="https://chawan.net/doc/cha/protocols.html#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># even Cha-Control headers will be interpreted as regular headers.</span></span>
+<span id="cb2-14"><a href="https://chawan.net/doc/cha/protocols.html#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="bu">printf</span> <span class="st">'Cha-Control: ControlDone\n'</span></span>
+<span id="cb2-15"><a href="https://chawan.net/doc/cha/protocols.html#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co"># As in HTTP, you must send an empty line before the body.</span></span>
+<span id="cb2-16"><a href="https://chawan.net/doc/cha/protocols.html#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="bu">printf</span> <span class="st">'\n'</span></span>
+<span id="cb2-17"><a href="https://chawan.net/doc/cha/protocols.html#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Now, print the body. We take the path passed to the URL; urimethodmap</span></span>
+<span id="cb2-18"><a href="https://chawan.net/doc/cha/protocols.html#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co"># sets this as MAPPED_URI_PATH. This is URI-encoded, so we also run the urldec</span></span>
+<span id="cb2-19"><a href="https://chawan.net/doc/cha/protocols.html#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co"># utility on it.</span></span>
+<span id="cb2-20"><a href="https://chawan.net/doc/cha/protocols.html#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="ex">cowsay</span> <span class="st">"</span><span class="va">$(</span><span class="bu">printf</span> <span class="st">'%s\n'</span> <span class="st">"</span><span class="va">$MAPPED_URI_PATH</span><span class="st">"</span> <span class="kw">|</span> <span class="st">"</span><span class="va">$CHA_LIBEXEC_DIR</span><span class="st">"</span><span class="ex">/urldec</span><span class="va">)</span><span class="st">"</span></span></code></pre></div>
+<p>Now, create a “.urimethodmap” file in your <code>$HOME</code>
+directory.</p>
+<p>Then, enter into it the following:</p>
+<pre><code>cowsay:     /cgi-bin/cowsay.cgi</code></pre>
+<p>Now try <code>cha cowsay:Hello,%20world.</code>. If you did
+everything correctly, it should wait one second, then print a cow saying
+“Hello, world.”.</p>
+<!-- MANON
+
+## See also
+
+**cha**(1), **cha-localcgi**(5), **cha-urimethodmap**(5), **cha-mailcap**(5)
+MANOFF -->
+</main>
+</body></html>

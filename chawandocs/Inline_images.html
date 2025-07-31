@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<!-- saved from url=(0037)https://chawan.net/doc/cha/image.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+Chawan: Inline images
+</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="https://chawan.net/favicon.ico">
+<style>
+    /* layout */
+*           { box-sizing: border-box; border-width: 0 }
+body            { display: flex; flex-direction: column }
+body            { min-height: 100vh; margin: 0 auto }
+header          { max-width: 60ch; display: flex; flex-wrap: wrap }
+header a        { display: block; flex: 1; font-size: larger }
+main            { width: 72ch; margin: 1em auto }
+@media(width<72ch){main { width: 100% }                        }
+footer          { float: right; font-style: italic }
+main            { display: flow-root; padding: 0 1ch }
+h1, h2, h3, h4, h5, h6  { font-size: inherit }
+table           { border-spacing: .5ch 0; margin: 0 -1ch }
+figure, img     { max-width: 100%; margin: 0 }
+figure          { padding: 1em 0 0 0 }
+figcaption      { text-align: center }
+pre         { padding-left: 1ch }
+@media(grid:0){ h1  { padding: 1ch 0 0; margin: 0 }
+        td, th  { padding: .3ch 1ch }
+    code, pre   { font-size: 15px }     }
+    /* colors */
+*           { color: white }
+header a        { background: #204A50 }
+header a.current    { background: #192C30 }
+header a:hover      { background: #192930 }
+body            { background: #102527 }
+main            { background: #103C40 }
+main a[href]        { color: #FFC6CB }
+th, td          { background: #113134 }
+tr:nth-child(2n) > *    { background: #102628 }
+    /* decoration */
+a[href]         { text-decoration: none }
+a[href]:hover       { text-decoration: underline }
+header a[href]:hover    { text-decoration: none }
+</style>
+</head>
+<body>
+<center>
+<header>
+<a href="https://chawan.net/index.html">Index</a> <a href="https://chawan.net/news/index.html">News</a> <a href="https://chawan.net/doc/index.html">Docs</a> <a href="https://chawan.net/issues.html">Issues</a> <a href="https://sr.ht/~bptato/chawan">Source</a>
+</header>
+</center>
+<main>
+<!-- MANON
+% cha-image(7) | Image support in Chawan
+MANOFF -->
+<h1 id="inline-images">Inline images</h1>
+<p>On terminals that support images, Chawan can display various
+bit-mapped image formats.</p>
+<h2 id="enabling-images">Enabling images</h2>
+<p>There are actually two switches for images in the config:</p>
+<ul>
+<li>buffer.images: this enables downloading images, <em>even if they
+cannot be displayed</em>.</li>
+<li>display.image-mode: sets the inline image display method. Defaults
+to “auto”, but may also be set to “sixel” or “kitty” manually.</li>
+</ul>
+<p>In most cases, all you need to do is to set “buffer.images” to
+true:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode toml"><code class="sourceCode toml"><span id="cb1-1"><a href="https://chawan.net/doc/cha/image.html#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># in ~/.chawan/config.toml (or ~/.config/chawan/config.toml)</span></span>
+<span id="cb1-2"><a href="https://chawan.net/doc/cha/image.html#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">[buffer]</span></span>
+<span id="cb1-3"><a href="https://chawan.net/doc/cha/image.html#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="dt">images</span> <span class="op">=</span> <span class="cn">true</span></span></code></pre></div>
+<p>With the default image-mode, Chawan will find the best image display
+method supported by your terminal. However, if your terminal fails to
+tell Chawan that it can display sixels, you may also have to set
+“display.image-mode” appropriately. See below for further discussion of
+sixel configuration.</p>
+<h2 id="output-formats">Output formats</h2>
+<p>Supported output formats are:</p>
+<ul>
+<li>The DEC Sixel format</li>
+<li>The Kitty terminal graphics protocol</li>
+</ul>
+<p>The former is supported because it’s ubiquitiously adopted; the
+latter because it is technically superior to all existing
+alternatives.</p>
+<p>Support for other protocols (iTerm, MLTerm, etc.) is not planned. (To
+my knowledge, all image-capable terminals support at least one of the
+above two anyways.)</p>
+<p>Support for hacks such as w3mimgdisplay, ueberzug, etc. is not
+planned.</p>
+<h3 id="sixel">Sixel</h3>
+<p>Sixel is the most widely supported image format. See <a href="https://arewesixelyet.com/" class="uri">https://arewesixelyet.com</a> to find a terminal that
+supports it.</p>
+<p>Known quirks and implementation details:</p>
+<ul>
+<li>XTerm needs extensive configuration for ideal sixel support. In
+particular, you will want to set the decTerminalID, numColorRegisters,
+and maxGraphicSize attributes. See <a href="man:xterm(1)"><code>man xterm</code></a> for details.</li>
+<li>We assume private color registers are supported. On terminals where
+they aren’t (e.g.&nbsp;SyncTERM or hardware terminals), colors will get
+messed up with multiple images on screen.</li>
+<li>We send XTSMGRAPHICS for retrieving the number of color registers;
+on failure, we fall back to 256. You can override color register count
+using the <code>display.sixel-colors</code> configuration value.</li>
+<li>For the most efficient sixel display, you will want a cell height
+that is a multiple of 6. Otherwise, the images will have to be re-coded
+several times on scroll.</li>
+<li>Normally, Sixel encoding runs in two passes. On slow computers, you
+can try setting <code>display.sixel-colors = 2</code>, which will skip
+the first pass (but will also display everything in monochrome).</li>
+<li>Transparency <em>is</em> supported, but looks weird because we
+approximate an 8-bit alpha channel with Sixel’s 1-bit alpha channel.
+Also, some terminals don’t emulate it correctly - when in doubt, try
+XTerm (which does).</li>
+</ul>
+<h3 id="kitty">Kitty</h3>
+<p>On terminals that support it, Kitty’s protocol is preferred over
+Sixel. Its main benefit is that images do not have to be sent again
+every time they move on the screen (i.e.&nbsp;on scroll), but the initial
+transfer should also be faster (because PNG’s compression tends to
+outperform Sixel’s RLE).</p>
+<p>Unlike Sixel, the Kitty protocol fully supports transparency.</p>
+<h2 id="input-formats">Input formats</h2>
+<p>Currently, the supported input formats are:</p>
+<ul>
+<li>BMP, PNG, JPEG, GIF (through stb_image)</li>
+<li>WebP (through JebP)</li>
+<li>SVG (through NanoSVG)</li>
+</ul>
+<p>More formats may be added in the future, provided there exists a
+reasonably small implementation, preferably in the public domain. (I do
+not want to depend on external image decoding libraries, but something
+like stbi is OK to vendor.)</p>
+<h3 id="codec-module-system">Codec module system</h3>
+<p>All image codec implementations are specified by the URL scheme
+“img-codec+name:”, where “name” is the MIME subtype. e.g.&nbsp;for image/png,
+it is “img-codec+png:”. (This indeed means that only “image” MIME types
+can be used.)</p>
+<p>Like all schemes, these are defined (and overridable) in the
+urimethodmap file, and are implemented as local CGI programs. These
+programs take an encoded image on stdin, and dump the decoded RGBA data
+to stdout - when encoding, vice versa.</p>
+<p>This means that it is possible for users to define image decoders for
+their preferred formats, or even override the built-in ones. (If you
+actually end up doing this for some reason, please shoot me a mail so I
+can add it to the bonus directory.)</p>
+<p>A codec can have one of, or both, “decode” and “encode” instructions;
+these are set in the path name. So “img-codec+png:decode” is called for
+decoding PNGs, and “img-codec+png:encode” for encoding them.</p>
+<p>Headers are used for transferring metadata (like image dimensions),
+both from the browser (input) and to the browser (output). Detailed
+description of the decoder &amp; encoder interfaces follows.</p>
+<h4 id="decoding">decoding</h4>
+<p>When the path equals “decode”, a codec CGI script must take a binary
+stream of an encoded image on its standard input and print the
+equivalent binary stream of big-endian 8-bit (per component) RGBA values
+to stdout.</p>
+<p>Input headers:</p>
+<ul>
+<li>Cha-Image-Info-Only: 1</li>
+</ul>
+<p>This tells the image decoder to only send image metadata (i.e.&nbsp;size).
+Technically, the decoder is free to actually decode the image too, but
+the browser will ignore any output after headers.</p>
+<p>Output headers:</p>
+<ul>
+<li>Cha-Image-Dimensions: {width}x{height}</li>
+</ul>
+<p>The size of the decoded image.</p>
+<p>The dimension format is such that e.g.&nbsp;for 123x456, 123 is width and
+456 is height.</p>
+<h4 id="encoding">encoding</h4>
+<p>When the path equals “encode”, a codec CGI script must take a binary
+stream of big-endian 8-bit (per component) RGBA values on its standard
+input and print the equivalent encoded image to its standard output.</p>
+<p>Input headers:</p>
+<ul>
+<li>Cha-Image-Dimensions: {width}x{height}</li>
+</ul>
+<p>Specifies the dimensions of the input RGBA image. This means that
+{width} * {height} * 4 == {size of data received on stdin}.</p>
+<p>The format is the same as above; in fact, the design is such that you
+could directly pipe the output of decode to encode (and vice versa).</p>
+<ul>
+<li>Cha-Image-Quality: {number}</li>
+</ul>
+<p>The requested encoding quality, ranging from 1 to 100 inclusive
+(i.e.&nbsp;1..100). It is up to the encoder to interpret this number.</p>
+<p>(The stb_image JPEG encoder uses this.)</p>
+<p>Output headers:</p>
+<p>Currently, no output headers are defined for encoders.</p>
+<h3 id="skipping-copies-with-mmap">Skipping copies with mmap</h3>
+<p>The naive implementation of the above system would have to copy the
+output at least twice when an image is resized. To skip these copies,
+stdin and/or stdout is (currently) a file in the tmp directory for:</p>
+<ul>
+<li>decode stdin, when the image is already downloaded</li>
+<li>decode stdout, always</li>
+<li>encode stdin, always</li>
+</ul>
+<p>This makes it possible to <a href="man:mmap(3)">mmap</a> stdin/stdout
+instead of streaming through them with <a href="man:read(3)">read</a>
+and <a href="man:write(3)">write</a>. When doing this, mind the
+following:</p>
+<ul>
+<li>When reading, you must check your initial position in the file with
+<a href="man:lseek(3)">lseek</a>.</li>
+<li>When writing, your headers are part of the output. At the very
+least, you must place a newline at the file’s beginning.</li>
+<li>This <em>is</em> an implementation detail, and might change at any
+time in the future (e.g.&nbsp;if we add a “no cache files” mode). Always
+check for S_ISREG to ensure that you are actually dealing with a file.
+(Use io/dynstream.nim’s recvDataLoopOrMmap and maybeMmapForSend to deal
+with this automatically.)</li>
+</ul>
+<!-- MANON
+
+## See also
+
+**cha**(1)
+MANOFF -->
+</main>
+</body></html>

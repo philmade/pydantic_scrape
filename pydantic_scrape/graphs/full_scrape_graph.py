@@ -36,8 +36,6 @@ from pydantic_scrape.dependencies import (
     FetchResult,
     OpenAlexDependency,
     OpenAlexResult,
-    YouTubeDependency,
-    YouTubeResult,
 )
 
 
@@ -259,7 +257,7 @@ class ScienceScrapeState:
     # Science paper progress - store actual result objects!
     openalex_result: Optional[OpenAlexResult] = None
     crossref_result: Optional[CrossrefResult] = None
-    youtube_result: Optional[YouTubeResult] = None
+    youtube_result: Optional[Dict[str, Any]] = None
     article_result: Optional[ArticleResult] = None
     document_result: Optional[DocumentResult] = None
     pdf_links: List[str] = None
@@ -314,9 +312,9 @@ class CompleteScienceDeps:
     ai_scraper: AiScraperDependency
     openalex: OpenAlexDependency
     crossref: CrossrefDependency
-    youtube: YouTubeDependency
     article: ArticleDependency
     document: DocumentDependency
+    youtube: Optional[Any] = None
 
 
 # === GRAPH NODES (Logic Gates) ===
@@ -618,6 +616,11 @@ class YouTubeNode(BaseNode[ScienceScrapeState, CompleteScienceDeps, "FinalizeNod
         self, ctx: GraphRunContext[ScienceScrapeState, CompleteScienceDeps]
     ) -> "FinalizeNode":
         try:
+            # YouTube dependency is disabled - skip YouTube processing
+            logger.info("YouTubeNode: YouTube processing disabled")
+            ctx.state.processing_errors.append("YouTube processing disabled")
+            return FinalizeNode()
+            
             # Use YouTube dependency for rich metadata and subtitle extraction
             ctx.state.youtube_result = await ctx.deps.youtube.extract_metadata(
                 ctx.state.url
@@ -1055,7 +1058,7 @@ class BrowserOptimizedScraping:
             ai_scraper=AiScraperDependency(),
             openalex=OpenAlexDependency(fuzzy_match_threshold=85.0),
             crossref=CrossrefDependency(),
-            youtube=YouTubeDependency(extract_subtitles=True, subtitle_lang="en"),
+            youtube=None,
             article=ArticleDependency(prefer_newspaper=True, language="en"),
             document=DocumentDependency(save_binary=True, save_temp_file=False),
         )
@@ -1243,7 +1246,7 @@ async def execute_full_scrape_graph(
         ai_scraper=AiScraperDependency(),
         openalex=OpenAlexDependency(fuzzy_match_threshold=85.0),
         crossref=CrossrefDependency(),
-        youtube=YouTubeDependency(extract_subtitles=True, subtitle_lang="en"),
+        youtube=None,
         article=ArticleDependency(prefer_newspaper=True, language="en"),
         document=DocumentDependency(save_binary=True, save_temp_file=False),
     )

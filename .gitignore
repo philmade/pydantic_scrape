@@ -90,13 +90,19 @@ downloads/
 ScrapeGraphOld/
 scrapingEVENOLDERANDBBAD/
 
-# Test outputs
+# Test outputs and development files
 test_output/
 debug_*.py
 test_*.py
-test_*.py
-examples/
-*.ipynb
+*_test.py
+clean_minimal_agent.py
+simple_*.py
+final_*.py
+test_*.html
+simple_*.html
+*_mcp_client.py
+*.backup
+performance_*.py
 
 # Generated files  
 *_graph.mermaid

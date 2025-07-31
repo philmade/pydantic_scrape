@@ -1,0 +1,42 @@
+# Performance-Optimized Chawan Configuration for Testing
+# Based on chawan docs performance recommendations
+
+[buffer]
+# Keep essential settings for AI navigation
+mark-links = true
+
+# Test without JS first to see if it's the bottleneck
+scripting = false  # TEST: Disable JS temporarily
+
+# Already optimized - keep CSS disabled
+styling = false
+
+# Test with minimal cookie handling
+cookie = false  # TEST: Disable cookies temporarily
+
+# Disable autofocus to reduce JS overhead
+autofocus = false
+
+# Disable images to reduce loading time
+images = false
+
+# Disable meta refresh to prevent auto-redirects
+meta-refresh = false
+
+[start]
+# TEST: Remove startup script delay
+# startup-script = ""  # No startup delay
+
+[display]
+# Minimize display overhead
+image-mode = "none"  # No image processing
+
+[external]
+# Minimal external processing
+# cookie-file = ""  # No cookie file processing
+
+# Test with minimal site configuration
+# [[siteconf]]
+# host = ".*"
+# scripting = false
+# cookie = false

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<!-- saved from url=(0037)https://chawan.net/doc/cha/build.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+Chawan: Building Chawan
+</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="https://chawan.net/favicon.ico">
+<style>
+    /* layout */
+*           { box-sizing: border-box; border-width: 0 }
+body            { display: flex; flex-direction: column }
+body            { min-height: 100vh; margin: 0 auto }
+header          { max-width: 60ch; display: flex; flex-wrap: wrap }
+header a        { display: block; flex: 1; font-size: larger }
+main            { width: 72ch; margin: 1em auto }
+@media(width<72ch){main { width: 100% }                        }
+footer          { float: right; font-style: italic }
+main            { display: flow-root; padding: 0 1ch }
+h1, h2, h3, h4, h5, h6  { font-size: inherit }
+table           { border-spacing: .5ch 0; margin: 0 -1ch }
+figure, img     { max-width: 100%; margin: 0 }
+figure          { padding: 1em 0 0 0 }
+figcaption      { text-align: center }
+pre         { padding-left: 1ch }
+@media(grid:0){ h1  { padding: 1ch 0 0; margin: 0 }
+        td, th  { padding: .3ch 1ch }
+    code, pre   { font-size: 15px }     }
+    /* colors */
+*           { color: white }
+header a        { background: #204A50 }
+header a.current    { background: #192C30 }
+header a:hover      { background: #192930 }
+body            { background: #102527 }
+main            { background: #103C40 }
+main a[href]        { color: #FFC6CB }
+th, td          { background: #113134 }
+tr:nth-child(2n) > *    { background: #102628 }
+    /* decoration */
+a[href]         { text-decoration: none }
+a[href]:hover       { text-decoration: underline }
+header a[href]:hover    { text-decoration: none }
+</style>
+</head>
+<body>
+<center>
+<header>
+<a href="https://chawan.net/index.html">Index</a> <a href="https://chawan.net/news/index.html">News</a> <a href="https://chawan.net/doc/index.html">Docs</a> <a href="https://chawan.net/issues.html">Issues</a> <a href="https://sr.ht/~bptato/chawan">Source</a>
+</header>
+</center>
+<main>
+<h1 id="building-chawan">Building Chawan</h1>
+<p>Chawan uses GNU make for builds.</p>
+<h2 id="variables">Variables</h2>
+<p>Following is a list of variables which may be safely overridden. You
+can also override them by setting an environment variable with the same
+name.</p>
+<ul>
+<li><code>TARGET</code>: the build target.
+<ul>
+<li><code>debug</code>: Generate a debug build, with stack traces and
+debugging symbols enabled. Useful for debugging, but generates huge and
+slow executables.</li>
+<li><code>release</code>: The default target. Uses LTO and strips the
+final binaries.</li>
+<li><code>release0</code>: A release build with stack traces enabled.
+Useful when you need to debug a crash that needs a lot of processing to
+manifest. Note: this does not enable line traces.</li>
+<li><code>release1</code>: A release build with debugging symbols
+enabled. Useful for profiling with cachegrind, or debugging a release
+build with gdb.</li>
+</ul></li>
+<li><code>OUTDIR</code>: where to output the files.</li>
+<li><code>NIM</code>: path to the Nim compiler.</li>
+<li><code>CFLAGS</code>, <code>LDFLAGS</code>: flags to pass to the C
+compiler at compile or link time.</li>
+<li><code>OBJDIR</code>: directory to output compilation artifacts. By
+default, it is <code>.obj</code>.</li>
+<li><code>PREFIX</code>: installation prefix, by default it is
+<code>/usr/local</code>.</li>
+<li><code>DESTDIR</code>: directory prepended to <code>$(PREFIX)</code>.
+e.g.&nbsp;you can set it to <code>/tmp</code>, so that
+<code>make install</code> installs the binary to the path
+<code>/tmp/usr/local/bin/cha</code>.</li>
+<li><code>MANPREFIX</code>, <code>MANPREFIX1</code>,
+<code>MANPREFIX5</code>: prefixes for the installation of man pages. The
+default setting expands to <code>/usr/local/share/man/man1</code>, etc.
+(Normally you shouldn’t have to set <code>MANPREFIX1</code> or
+<code>MANPREFIX5</code> at all, as these are derived from
+<code>MANPREFIX</code>.)</li>
+<li><code>CURLLIBNAME</code>: Change the name of the libcurl shared
+object file.</li>
+<li><code>LIBEXECDIR</code>: Path to your libexec directory; by default,
+it is relative to wherever the binary is placed when it is executed.
+(i.e. after installation it would resolve to
+<code>/usr/local/libexec</code>.)</li>
+<li><code>STATIC_LINK</code>: Set it to 1 for static linking.</li>
+<li><code>DANGER_DISABLE_SANDBOX</code>: Set it to 1 to forcibly disable
+syscall filtering. Note that this is <em>not</em> taken from the
+environment variables, and you must use it like
+<code>make DANGER_DISABLE_SANDBOX=1</code>.<br>
+<strong>Warning</strong>: as the name suggests, this is rarely an
+optimal solution to whatever problem you are facing.</li>
+</ul>
+<p>This list does not include the <code>CC</code> variable, because Nim
+only supports a limited set of C compilers. If you want to override the
+C compiler:</p>
+<ol type="1">
+<li>Set <code>CC</code> to the respective compiler anyways, because it
+is used by chaseccomp.</li>
+<li>If your compiler is supported by Nim, then set
+e.g.&nbsp;<code>FLAGS=--cc:clang</code>. Check the list of supported
+compilers with <code>nim --cc:help</code>.</li>
+<li>If your compiler is not supported by Nim, but emulates another
+compiler driver, then add e.g.
+<code>FLAGS=--gcc.path=/usr/local/musl/bin --gcc.exe=musl-gcc --gcc.linkerexe=musl-gcc</code></li>
+</ol>
+<h2 id="phony-targets">Phony targets</h2>
+<ul>
+<li><code>all</code>: build all required executables</li>
+<li><code>clean</code>: remove OBJDIR (i.e.&nbsp;object files, but not the
+built executables)</li>
+<li><code>distclean</code>: remove OBJDIR and OUTDIR (i.e.&nbsp;both object
+files and executables)</li>
+<li><code>manpage</code>: rebuild man pages; note that this is not part
+of <code>all</code>. Manual pages are included in the repository, so
+this only needs to be called when you modify the documentation.</li>
+<li><code>install</code>: install the <code>cha</code> binary, and if
+man pages were generated, those as well</li>
+<li><code>uninstall</code>: remove the <code>cha</code> binary and
+Chawan man pages</li>
+</ul>
+<h2 id="cross-compiling">Cross-compiling</h2>
+<p><a href="https://todo.sr.ht/~bptato/chawan/37">Apparently</a> it’s
+possible. From user cutenice (with dependencies updated):</p>
+<blockquote>
+<p>With the latest changes, I could simply run
+<code>CFLAGS=-m32 LDFLAGS=-m32 FLAGS=--cpu:i386 make</code> to
+cross-compile!</p>
+<p>I don’t know if I have any additional insight from today’s
+exploration.. On Arch I needed these things:</p>
+<ul>
+<li><code>nim-git</code> from the AUR
+<ul>
+<li>the version available in the repos isn’t quite new enough it seems.
+I think it’s related to #12 (at least i got similar looking errors)</li>
+</ul></li>
+<li>enable the multilib repository in <code>/etc/pacman.conf</code></li>
+<li><code>pacman -S lib32-openssl lib32-libxcrypt lib32-libssh2</code>
+<ul>
+<li>most of these packages pull packages like
+<code>lib32-gcc-libs</code> and <code>lib32-glibc</code> which might be
+useful as well haha</li>
+</ul></li>
+<li>the rest can be eluded from the PKGBUILD in the <a href="https://aur.archlinux.org/packages/chawan-git">AUR</a></li>
+</ul>
+</blockquote>
+<h2 id="static-linking">Static linking</h2>
+<p>Tested with musl as follows:</p>
+<ul>
+<li>Install musl to the default path (<code>/usr/local/musl</code>)</li>
+<li>Add the following to <code>$HOME/nim.cfg</code>:</li>
+</ul>
+<pre><code>cc:gcc
+gcc.path = "/usr/local/musl/bin"
+gcc.exe = "musl-gcc"
+gcc.linkerexe = "musl-gcc"</code></pre>
+<ul>
+<li>Compile and install OpenSSL, libssh2, libbrotlicommon and
+libbrotlidec to <code>/usr/local/musl</code>.</li>
+<li>Compile Chawan:</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="https://chawan.net/doc/cha/build.html#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> export PKG_CONFIG_PATH=/usr/local/musl/lib/pkgconfig:/usr/local/musl/lib64/pkgconfig</span>
+<span id="cb2-2"><a href="https://chawan.net/doc/cha/build.html#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> export CC=musl-gcc STATIC_LINK=1</span>
+<span id="cb2-3"><a href="https://chawan.net/doc/cha/build.html#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> make distclean</span>
+<span id="cb2-4"><a href="https://chawan.net/doc/cha/build.html#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> make</span></code></pre></div>
+</main>
+</body></html>

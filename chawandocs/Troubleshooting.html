@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<!-- saved from url=(0047)https://chawan.net/doc/cha/troubleshooting.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+Chawan: Troubleshooting Chawan
+</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="https://chawan.net/favicon.ico">
+<style>
+    /* layout */
+*           { box-sizing: border-box; border-width: 0 }
+body            { display: flex; flex-direction: column }
+body            { min-height: 100vh; margin: 0 auto }
+header          { max-width: 60ch; display: flex; flex-wrap: wrap }
+header a        { display: block; flex: 1; font-size: larger }
+main            { width: 72ch; margin: 1em auto }
+@media(width<72ch){main { width: 100% }                        }
+footer          { float: right; font-style: italic }
+main            { display: flow-root; padding: 0 1ch }
+h1, h2, h3, h4, h5, h6  { font-size: inherit }
+table           { border-spacing: .5ch 0; margin: 0 -1ch }
+figure, img     { max-width: 100%; margin: 0 }
+figure          { padding: 1em 0 0 0 }
+figcaption      { text-align: center }
+pre         { padding-left: 1ch }
+@media(grid:0){ h1  { padding: 1ch 0 0; margin: 0 }
+        td, th  { padding: .3ch 1ch }
+    code, pre   { font-size: 15px }     }
+    /* colors */
+*           { color: white }
+header a        { background: #204A50 }
+header a.current    { background: #192C30 }
+header a:hover      { background: #192930 }
+body            { background: #102527 }
+main            { background: #103C40 }
+main a[href]        { color: #FFC6CB }
+th, td          { background: #113134 }
+tr:nth-child(2n) > *    { background: #102628 }
+    /* decoration */
+a[href]         { text-decoration: none }
+a[href]:hover       { text-decoration: underline }
+header a[href]:hover    { text-decoration: none }
+</style>
+</head>
+<body>
+<center>
+<header>
+<a href="https://chawan.net/index.html">Index</a> <a href="https://chawan.net/news/index.html">News</a> <a href="https://chawan.net/doc/index.html">Docs</a> <a href="https://chawan.net/issues.html">Issues</a> <a href="https://sr.ht/~bptato/chawan">Source</a>
+</header>
+</center>
+<main>
+<!-- MANON
+% cha-troubleshooting(7) | Troubleshooting Chawan
+MANOFF -->
+<h1 id="troubleshooting-chawan">Troubleshooting Chawan</h1>
+<p>This document lists common problems you may run into when using
+Chawan.</p>
+<p>If you encounter a problem not described in this document, please
+open a ticket at <a href="https://todo.sr.ht/~bptato/chawan" class="uri">https://todo.sr.ht/~bptato/chawan</a>.</p>
+<h2 id="i-cant-selectcopy-text-with-my-mouse">I can’t select/copy text
+with my mouse?</h2>
+<p>Right click -&gt; select text, then right click -&gt; copy
+selection.</p>
+<p>If Chawan complains about xsel, either install it or edit
+<code>external.copy-cmd</code> and <code>external.paste-cmd</code> to
+your liking.</p>
+<h2 id="why-do-i-get-strangeincorrectugly-colors">Why do I get
+strange/incorrect/ugly colors?</h2>
+<p>Chawan’s display capabilities depend on what your terminal reports.
+In particular:</p>
+<ul>
+<li>if the <code>$COLORTERM</code> variable is not set, then it may fall
+back to 8-bit or ANSI colors. Make sure you export it as
+<code>COLORTERM=truecolor</code>.</li>
+<li>if it does not respond to querying the background color, then
+Chawan’s color contrast correction will likely malfunction. you can
+correct this using the
+<code>display.default-background-color</code>/<code>display.default-foreground-color</code>
+variables.</li>
+</ul>
+<p>See <a href="https://chawan.net/doc/cha/config.html#display">config.md</a> for details.</p>
+<h2 id="i-set-my-pager-to-cha-and-now-man-pages-are-unreadable.">I set
+my <code>$PAGER</code> to <code>cha</code> and now man pages are
+unreadable.</h2>
+<p>Most <code>man</code> implementations print formatted manual pages by
+default, which Chawan <em>can</em> parse if they are passed through
+standard input.</p>
+<p>Unfortunately, mandoc passes us the formatted document as a
+<em>file</em>, which Chawan reasonably interprets as plain text without
+formatting.</p>
+<p>At this point, you have two options:</p>
+<ul>
+<li><code>export PAGER='cha -T text/x-ansi'</code> and see that man
+suddenly works as expected.</li>
+<li><code>alias man=mancha</code> and see that man suddenly works better
+than expected.</li>
+</ul>
+<p>Ideally you should do both, to deal with cases like git help which
+shells out to man directly.</p>
+<p>There is still one problem with this solution: some programs will try
+to call <code>$PAGER</code> without shell expansion, breaking the
+<code>-T text/x-ansi</code> trick. To fix this, put a script somewhere
+in your <code>PATH</code>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="https://chawan.net/doc/cha/troubleshooting.html#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/sh</span></span>
+<span id="cb1-2"><a href="https://chawan.net/doc/cha/troubleshooting.html#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">exec</span> cha <span class="at">-T</span> text/x-ansi <span class="st">"</span><span class="va">$@</span><span class="st">"</span></span></code></pre></div>
+<p>and <code>export PAGER=pcha</code> (or whatever you named the
+script).</p>
+<h2 id="how-do-i-view-text-files-with-wrapping">How do I view text files
+with wrapping?</h2>
+<p>By default, text files are not auto-wrapped, so viewing plain text
+files that were not wrapped properly by the authors is somewhat
+annoying.</p>
+<p>A workaround is to add this to your <a href="https://chawan.net/doc/cha/config.html#keybindings">config</a>’s <code>[page]</code>
+section:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode toml"><code class="sourceCode toml"><span id="cb2-1"><a href="https://chawan.net/doc/cha/troubleshooting.html#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">' f'</span> <span class="op">=</span> <span class="st">"pager.externFilterSource('fmt')"</span></span></code></pre></div>
+<p>and then press <code>&lt;space&gt; f</code> to view a wrapped version
+of the current text file. (This assumes your system has an
+<code>fmt</code> program - if not, <code>fold -s</code> may be an
+alternative.)</p>
+<p>To always automatically wrap, you can add this to your <a href="https://chawan.net/doc/cha/config.html#stylesheets">user style</a>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode css"><code class="sourceCode css"><span id="cb3-1"><a href="https://chawan.net/doc/cha/troubleshooting.html#cb3-1" aria-hidden="true" tabindex="-1"></a>plaintext { <span class="kw">white-space</span><span class="ch">:</span> <span class="dv">pre-wrap</span> }</span></code></pre></div>
+<p>To do the same for HTML and ANSI text, use
+<code>plaintext, pre</code>.</p>
+<h2 id="why-does-website-look-awful">Why does <code>$WEBSITE</code> look
+awful?</h2>
+<p>Usually, this is because it uses some CSS features that are not yet
+implemented in Chawan. The most common offenders are grid and
+calc().</p>
+<p>There are three ways of dealing with this:</p>
+<ol type="1">
+<li>If the website’s contents are mostly text, install <a href="https://github.com/eafer/rdrview">rdrview</a>. Then bind the
+following command to a key of your choice in the <a href="https://chawan.net/doc/cha/config.html#keybindings">config</a>
+(e.g.&nbsp;<code>&lt;space&gt; r</code>):<br>
+<code>' r' = "pager.externFilterSource('rdrview -Hu \"$CHA_URL\"')"</code><br>
+This does not fix the core problem, but will significantly improve your
+reading experience anyway.</li>
+<li>Complain <a href="https://todo.sr.ht/~bptato/chawan">here</a>, and
+wait until the problem goes away.</li>
+<li>Write a patch to fix the problem, and send it <a href="https://lists.sr.ht/~bptato/chawan-devel">here</a>.</li>
+</ol>
+<h2 id="websites-interactive-features-dont-work"><code>$WEBSITE</code>’s
+interactive features don’t work!</h2>
+<p>Some potential fixes:</p>
+<ul>
+<li>Logging in to websites requires cookies. Some websites also require
+cookie sharing across domains. For security reasons, Chawan does not
+allow any of this by default, so you will have to fiddle with siteconf
+to fix it. See <a href="https://chawan.net/doc/cha/config.html#siteconf">config.md#siteconf</a> for
+details.</li>
+<li>Set the <code>referer-from</code> siteconf value to true; this will
+cause Chawan to send a <code>Referer</code> header when navigating to
+other URLs from the target URL.</li>
+<li>Enable JavaScript. If something broke, type M-c M-c to check the
+browser console, then follow step 3. of the previous answer.<br>
+Warning: remote JavaScript execution is inherently unsafe. Please only
+enable JavaScript on websites you trust.</li>
+</ul>
+<h2 id="text-areas-discard-my-edits-when-i-type-c-c-in-my-editor">Text
+areas discard my edits when I type C-c in my editor!</h2>
+<p>This is a bug in your shell: <a href="https://people.freebsd.org/~cracauer/homepage-mirror/sigint.html" class="uri">https://people.freebsd.org/~cracauer/homepage-mirror/sigint.html</a></p>
+<p>When Chawan runs an external text editor, it simply passes the
+<code>$EDITOR</code> command to the shell, and then examines its
+<em>wait status</em> to determine if your editor exited gracefully. This
+works if either the editor never receives a signal, or your shell
+implements WCE.</p>
+<p>However, if the editor (e.g.&nbsp;nvi) catches SIGINT on C-c, and the
+shell reports that the program was killed by a signal (WUE), then Chawan
+will discard your changes (as it believes that the program has
+crashed).</p>
+<p>The easiest workaround is to remove the shell from the equation using
+<code>exec</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="https://chawan.net/doc/cha/troubleshooting.html#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">[external]</span></span>
+<span id="cb4-2"><a href="https://chawan.net/doc/cha/troubleshooting.html#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">editor</span> = <span class="st">'exec vi +%d'</span></span></code></pre></div>
+<h2 id="when-i-open-chawan-from-aerc-it-prints-garbage-in-the-search-field">When
+I open Chawan from aerc, it prints garbage in the search field!</h2>
+<p>This should be fixed in the latest aerc version. Please update
+aerc.</p>
+<!-- MANON
+## See also
+
+**cha**(1)
+MANOFF -->
+</main>
+</body></html>

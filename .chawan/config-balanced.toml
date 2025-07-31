@@ -1,0 +1,37 @@
+# Balanced Performance Chawan Configuration 
+# Keeps essential JS but optimizes for speed
+
+[buffer]
+# Essential for AI navigation
+mark-links = true
+
+# Keep JS but try lighter mode first
+scripting = true  # Try basic JS instead of "app"
+
+# Keep CSS disabled - major performance win
+styling = false
+
+# Essential for cookie sites but optimize
+cookie = "save"
+autofocus = false  # Reduce JS overhead
+
+# Disable non-essential features for speed
+images = false
+meta-refresh = false
+
+[start]
+# REMOVE the 2-second startup delay!
+# startup-script = ""  # This was adding 2+ seconds every time!
+
+[display]
+# Minimize display processing
+image-mode = "none"
+
+[external]
+cookie-file = "cookies.txt"
+
+# Simplified site config - no universal scripting override
+[[siteconf]]
+host = ".*"
+cookie = "save"
+# scripting handled at buffer level

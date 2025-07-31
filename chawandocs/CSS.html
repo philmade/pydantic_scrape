@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<!-- saved from url=(0035)https://chawan.net/doc/cha/css.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+Chawan: CSS in Chawan
+</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="https://chawan.net/favicon.ico">
+<style>
+    /* layout */
+*           { box-sizing: border-box; border-width: 0 }
+body            { display: flex; flex-direction: column }
+body            { min-height: 100vh; margin: 0 auto }
+header          { max-width: 60ch; display: flex; flex-wrap: wrap }
+header a        { display: block; flex: 1; font-size: larger }
+main            { width: 72ch; margin: 1em auto }
+@media(width<72ch){main { width: 100% }                        }
+footer          { float: right; font-style: italic }
+main            { display: flow-root; padding: 0 1ch }
+h1, h2, h3, h4, h5, h6  { font-size: inherit }
+table           { border-spacing: .5ch 0; margin: 0 -1ch }
+figure, img     { max-width: 100%; margin: 0 }
+figure          { padding: 1em 0 0 0 }
+figcaption      { text-align: center }
+pre         { padding-left: 1ch }
+@media(grid:0){ h1  { padding: 1ch 0 0; margin: 0 }
+        td, th  { padding: .3ch 1ch }
+    code, pre   { font-size: 15px }     }
+    /* colors */
+*           { color: white }
+header a        { background: #204A50 }
+header a.current    { background: #192C30 }
+header a:hover      { background: #192930 }
+body            { background: #102527 }
+main            { background: #103C40 }
+main a[href]        { color: #FFC6CB }
+th, td          { background: #113134 }
+tr:nth-child(2n) > *    { background: #102628 }
+    /* decoration */
+a[href]         { text-decoration: none }
+a[href]:hover       { text-decoration: underline }
+header a[href]:hover    { text-decoration: none }
+</style>
+</head>
+<body>
+<center>
+<header>
+<a href="https://chawan.net/index.html">Index</a> <a href="https://chawan.net/news/index.html">News</a> <a href="https://chawan.net/doc/index.html">Docs</a> <a href="https://chawan.net/issues.html">Issues</a> <a href="https://sr.ht/~bptato/chawan">Source</a>
+</header>
+</center>
+<main>
+<!-- MANON
+% cha-css(7) | Image support in Chawan
+MANOFF -->
+<h1 id="css-in-chawan">CSS in Chawan</h1>
+<p>This document describes CSS features supported by Chawan, as well as
+its proprietary extensions and deviations from standards.</p>
+<p>If you discover a deviation that is not covered by this document,
+please open a ticket at <a href="https://todo.sr.ht/~bptato/chawan" class="uri">https://todo.sr.ht/~bptato/chawan</a>.</p>
+<h2 id="standard-properties">Standard properties</h2>
+<p>A list of supported standard properties, with notes on unimplemented
+values:</p>
+<ul>
+<li>background-color (see color)</li>
+<li>background-image (displays placeholders only)</li>
+<li>border-collapse</li>
+<li>border-spacing</li>
+<li>bottom</li>
+<li>box-sizing</li>
+<li>caption-side</li>
+<li>clear</li>
+<li>color (hex values and functions <code>rgb</code>, <code>rgba</code>,
+<code>hsl</code>, <code>hsla</code>)</li>
+<li>content (string, (no-)open/close-quote, counter())</li>
+<li>counter-increment</li>
+<li>counter-reset</li>
+<li>counter-set</li>
+<li>display (<code>block</code>, <code>inline-block</code>,
+<code>list-item</code>, <code>table</code>, <code>table-*</code>,
+<code>flex</code>, <code>inline-flex</code>,
+<code>flow-root</code>)</li>
+<li>flex-basis (but <code>content</code> not supported)</li>
+<li>flex-direction</li>
+<li>flex-grow</li>
+<li>flex-shrink</li>
+<li>flex-wrap</li>
+<li>float</li>
+<li>font-size (ignored; only for JS compatibility)</li>
+<li>font-style (<code>oblique</code> interpreted as
+<code>italic</code>)</li>
+<li>font-weight (numeric properties &gt; 500 interpreted as bold, others
+as regular)</li>
+<li>height</li>
+<li>left</li>
+<li>list-style-position</li>
+<li>list-style-type (but no custom list styles)</li>
+<li>margin-bottom</li>
+<li>margin-left</li>
+<li>margin-right</li>
+<li>margin-top</li>
+<li>max-height</li>
+<li>max-width</li>
+<li>min-height</li>
+<li>min-width</li>
+<li>opacity (hacky; only works with <code>opacity: 0</code>)</li>
+<li>overflow-x (see below on scrollbars)</li>
+<li>overflow-y (see below on scrollbars)</li>
+<li>padding-bottom</li>
+<li>padding-left</li>
+<li>padding-right</li>
+<li>padding-top</li>
+<li>position (see below for <code>sticky</code> and
+<code>fixed</code>)</li>
+<li>quotes</li>
+<li>right</li>
+<li>text-align</li>
+<li>text-decoration (<code>none</code>, <code>underline</code>,
+<code>overline</code>, <code>line-through</code>)</li>
+<li>text-transform</li>
+<li>top</li>
+<li>vertical-align</li>
+<li>visibility</li>
+<li>white-space</li>
+<li>width</li>
+<li>word-break</li>
+<li>z-index</li>
+</ul>
+<p>Shorthands:</p>
+<ul>
+<li>all</li>
+<li>margin</li>
+<li>padding</li>
+<li>background (only color and url; other components are skipped)</li>
+<li>list-style (list-style-image is skipped)</li>
+<li>flex</li>
+<li>flex-flow</li>
+<li>overflow</li>
+</ul>
+<p>Variables (the <code>var</code> function) are supported only for
+non-shorthand properties and the <code>background</code> shorthand.</p>
+<p>Values with a <code>&lt;length&gt;</code> type support very simple
+<code>calc()</code> expressions that consist of one addition or
+subtraction and do not use the <code>var</code> function.</p>
+<h2 id="selectors">Selectors</h2>
+<p>All selector types from CSS 2.1 are supported, except for
+namespaces.</p>
+<p>Following standard pseudo-classes are supported:
+<code>:first-child</code>, <code>:last-child</code>,
+<code>:only-child</code>, <code>:hover</code>, <code>:root</code>,
+<code>:nth-child()</code>, <code>:nth-last-child()</code>,
+<code>:checked</code>, <code>:focus</code>, <code>:is()</code>,
+<code>:not()</code>, <code>:where()</code>, <code>:lang()</code> (only
+“en” is matched), <code>:link</code>, <code>:target</code>.</p>
+<p><code>:visited</code> is parsed, but for now it is not matched.</p>
+<p>The standard pseudo-elements <code>::before</code>,
+<code>::after</code>, and <code>::marker</code> are supported.</p>
+<h2 id="proprietary-extensions">Proprietary extensions</h2>
+<ul>
+<li><p><code>text-align</code> accepts the values
+<code>-cha-center</code>, <code>-cha-left</code>, and
+<code>-cha-right</code> to support the HTML <code>&lt;center&gt;</code>,
+<code>&lt;div align=left&gt;</code> and
+<code>&lt;div align=right&gt;</code> elements. (Analogous to
+<code>-moz-center</code> etc.)</p></li>
+<li><p>Properties with a <code>&lt;color&gt;</code> value accept the
+function <code>-cha-ansi()</code>, which takes one parameter that is
+either:</p>
+<ul>
+<li><p>An 8-bit integer, indicating a color value as set by XTerm’s
+indexed color feature.</p></li>
+<li><p>One of the strings “black”, “red”, “green”, “yellow”, “blue”,
+“magenta”, “cyan”, “white” for an ANSI color, possibly prefixed by the
+string “bright-” to indicate an aixterm 16-color value.</p></li>
+</ul>
+<p>The actual palette in use is specified by the user/terminal.</p></li>
+<li><p><code>text-decoration</code> accepts the keyword
+<code>-cha-reverse</code>, which sets the <em>reverse video</em>
+parameter on the text. (This is used by the UA style sheet to highlight
+text in <code>&lt;code&gt;</code> tags.)</p></li>
+<li><p><code>text-transform</code> accepts the keyword
+<code>-cha-half-width</code>, which has the opposite effect as
+<code>full-width</code>.<br> This can be used in user style sheets to
+compress distracting ruby text:
+<code>rt{text-transform: -cha-half-width}</code>. Characters without
+half-width counterparts are left intact, except hiragana is treated as
+katakana.</p></li>
+<li><p>The <code>-cha-colspan</code> and <code>-cha-rowspan</code>
+properties have the same effect as the <code>colspan</code> and
+<code>rowspan</code> attributes on tables.</p></li>
+<li><p>The <code>:-cha-first-node</code> and
+<code>:-cha-last-node</code> pseudo-classes apply to elements that have
+no preceding/subsequent sibling node that is either an element node or a
+text node with non-whitespace contents. (Modeled after
+<code>:-moz-first-node</code> and
+<code>:-moz-last-node</code>.)</p></li>
+<li><p>If <code>buffer.mark-links</code> is set, the
+<code>::-cha-link-marker</code> pseudo-element will be generated on all
+anchor elements.</p></li>
+</ul>
+<h2 id="rendering-quirks">Rendering quirks</h2>
+<p>These are willful violations of the standard, usually made to better
+fit the display model inherent to projecting the web to a cell-based
+screen.</p>
+<h3 id="user-agent-style-sheet">User agent style sheet</h3>
+<p>The user agent style sheet is a combination of the styles suggested
+by the HTML standard and a CSS port of w3m’s rendering. In general,
+faithfulness to w3m is preferred over the standard’s suggestions, unless
+w3m’s rendering breaks on existing websites.</p>
+<p>Link colors differ depending on the terminal’s color scheme.</p>
+<h3 id="sizing-and-positioning">Sizing and positioning</h3>
+<p>Layout is performed on a finite canvas of coordinates represented by
+a 32-bit fixed-point number with 6 bits of precision. After layout,
+these positions are divided by the cell width and/or height, with the
+fractional part truncated. (This is subject to change.)</p>
+<p>In case of Kitty images, the fractional part is preserved, and is
+used as an in-cell offset.</p>
+<p>The lengths <code>1em</code> and <code>1ch</code> compute to the cell
+height and cell width respectively.</p>
+<p>In outer inline boxes (<code>inline-block</code>,
+<code>inline-flex</code>) and <code>list-item</code> boxes, margins and
+padding that are smaller than one cell (on the respective axis) are
+ignored. This does not apply to blockified inline boxes.</p>
+<p>When calculating clip boxes (<code>overflow: hidden</code> or
+<code>clip</code>), the clip box’s offset is floored, and its size is
+ceiled to the nearest cell’s boundaries. This means that “width: 1px;
+overflow: hidden” will still display the first character of a text
+box.</p>
+<h3 id="scroll-bars">Scroll bars</h3>
+<p>Chawan does not have scroll bars, as they would complicate on-page
+navigation and would not work in dump mode. Instead, the “overflow-x/y”
+properties are handled as follows.</p>
+<ol type="1">
+<li>If <code>overflow</code> is <code>auto</code> or
+<code>scroll</code>, and the intrinsic minimum size of the box is
+greater than its specified size, then the former overrides the
+latter.</li>
+<li>Content that spills out of a scroll container on the X axis is
+displayed, while content that spills out of a scroll container on the Y
+axis is clipped.</li>
+</ol>
+<h3 id="position-fixed-position-sticky"><code>position: fixed</code>,
+<code>position: sticky</code></h3>
+<p>To keep the document model static, these do not change their position
+based on the viewport’s scroll status. Instead:</p>
+<ul>
+<li><code>position: sticky</code> is treated as
+<code>position: static</code>, except it also behaves as an absolute
+position container.</li>
+<li><code>position: fixed</code> is placed at the bottom of the
+document.</li>
+</ul>
+<p>Right now, <code>position: fixed</code> is always positioned at the
+bottom of the root element’s margin box. This breaks on pages that
+overflow it (e.g. by setting <code>height: 100%</code> on the root
+element), so it will be moved to the bottom of its overflow box in the
+future.</p>
+<h3 id="color-correction">Color correction</h3>
+<p>Some authors only specify one of the foreground or the background
+color, assuming a black-on-white canvas. The
+<code>display.minimum-contrast</code> option adjusts the foreground
+color so that text remains readable even if the terminal background does
+not match this expectation. (The exact algorithm is unspecified and
+subject to change.)</p>
+<p>This unfortunately breaks spoiler mechanisms that rely on “black on
+black” text not being visible. The issue disappears when
+<code>visibility: hidden</code> is applied to the text as well.</p>
+<!-- MANON
+
+## See also
+
+**cha**(1)
+MANOFF -->
+</main>
+</body></html>

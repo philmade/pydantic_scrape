@@ -15,6 +15,31 @@ Pydantic Scrape bridges this gap by providing:
 
 ## Installation
 
+### 1. Install Chawan Terminal Browser (Required)
+
+Pydantic Scrape uses [Chawan](https://sr.ht/~bptato/chawan/) for advanced web automation and JavaScript-heavy sites.
+
+**macOS (Homebrew):**
+```bash
+brew install chawan
+```
+
+**Linux (from source):**
+```bash
+# Install Nim compiler
+curl https://nim-lang.org/choosenim/init.sh -sSf | sh
+# Install Chawan
+git clone https://git.sr.ht/~bptato/chawan
+cd chawan && make && sudo make install
+```
+
+**Verify installation:**
+```bash
+cha --version
+```
+
+### 2. Install Pydantic Scrape
+
 ```bash
 # Standard installation
 pip install pydantic-scrape
@@ -84,6 +109,20 @@ doc = DocumentDependency()
 content = await doc.extract_text("research_paper.pdf")
 ```
 
+### 🌐 Advanced Browser Automation
+```python
+from pydantic_scrape.agents.search_and_browse import SearchAndBrowseAgent
+
+# Intelligent search + browse with memory and geographic targeting
+agent = SearchAndBrowseAgent()
+result = await agent.run(
+    "Find 5 cabinet refacing services in North West England with contact details"
+)
+
+# Automatically handles: cookie popups, JavaScript, geographic targeting, 
+# content caching, parallel browsing, and form detection
+```
+
 ## Common Use Cases
 
 - **Literature Reviews** - Automatically search, extract, and summarize academic papers
@@ -104,15 +143,29 @@ This makes it easy to compose complex workflows from simple, tested components.
 
 ## Configuration
 
-Set your API keys in a `.env` file:
+### 1. Set API Keys
+Create a `.env` file in your project root:
 
 ```bash
+# AI Providers (choose one or more)
 OPENAI_API_KEY=your_openai_key
 GOOGLE_GENAI_API_KEY=your_google_key  
 ANTHROPIC_API_KEY=your_anthropic_key
+
+# Google Search (for enhanced search capabilities)
+GOOGLE_SEARCH_API_KEY=your_google_search_key
+GOOGLE_SEARCH_ENGINE_ID=your_search_engine_id
 ```
 
-Most features work with any of these providers. The framework automatically selects the best model for each task.
+### 2. Chawan Configuration
+The package includes an optimized Chawan configuration in `.chawan/config.toml` that provides:
+
+- **7x faster** web automation vs default settings
+- **Cookie popup handling** without JavaScript overhead  
+- **Content caching** for instant subsequent operations
+- **Geographic search targeting** for accurate local results
+
+No additional Chawan setup required - works out of the box!
 
 ## Documentation
 

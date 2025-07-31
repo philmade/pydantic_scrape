@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<!-- saved from url=(0042)https://chawan.net/doc/cha/mime.types.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+Chawan: mime.types
+</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="https://chawan.net/favicon.ico">
+<style>
+    /* layout */
+*           { box-sizing: border-box; border-width: 0 }
+body            { display: flex; flex-direction: column }
+body            { min-height: 100vh; margin: 0 auto }
+header          { max-width: 60ch; display: flex; flex-wrap: wrap }
+header a        { display: block; flex: 1; font-size: larger }
+main            { width: 72ch; margin: 1em auto }
+@media(width<72ch){main { width: 100% }                        }
+footer          { float: right; font-style: italic }
+main            { display: flow-root; padding: 0 1ch }
+h1, h2, h3, h4, h5, h6  { font-size: inherit }
+table           { border-spacing: .5ch 0; margin: 0 -1ch }
+figure, img     { max-width: 100%; margin: 0 }
+figure          { padding: 1em 0 0 0 }
+figcaption      { text-align: center }
+pre         { padding-left: 1ch }
+@media(grid:0){ h1  { padding: 1ch 0 0; margin: 0 }
+        td, th  { padding: .3ch 1ch }
+    code, pre   { font-size: 15px }     }
+    /* colors */
+*           { color: white }
+header a        { background: #204A50 }
+header a.current    { background: #192C30 }
+header a:hover      { background: #192930 }
+body            { background: #102527 }
+main            { background: #103C40 }
+main a[href]        { color: #FFC6CB }
+th, td          { background: #113134 }
+tr:nth-child(2n) > *    { background: #102628 }
+    /* decoration */
+a[href]         { text-decoration: none }
+a[href]:hover       { text-decoration: underline }
+header a[href]:hover    { text-decoration: none }
+</style>
+</head>
+<body>
+<center>
+<header>
+<a href="https://chawan.net/index.html">Index</a> <a href="https://chawan.net/news/index.html">News</a> <a href="https://chawan.net/doc/index.html">Docs</a> <a href="https://chawan.net/issues.html">Issues</a> <a href="https://sr.ht/~bptato/chawan">Source</a>
+</header>
+</center>
+<main>
+<!-- MANON
+% cha-mime.types(5) | MIME type detection in Chawan
+MANOFF -->
+<h1 id="mime.types">mime.types</h1>
+<p>Chawan uses the mime.types file to recognize certain file extensions
+for matching mailcap entries. See the <!-- MANOFF --><a href="https://chawan.net/doc/cha/mailcap.html">mailcap</a><!-- MANON -->
+<!-- MANON **cha-mailcap**(5) MANOFF --> documentation for a description
+of mailcap.</p>
+<h2 id="search-path">Search path</h2>
+<p>Chawan parses all mime.types files defined in
+<code>external.mime-types</code>. If no mime.types file was found, the
+built-in mime type associations are used.</p>
+<p>The default search path for mime.types files is:</p>
+<pre><code>$HOME/.mime.types:/etc/mime.types:/usr/etc/mime.types:/usr/local/etc/mime.types</code></pre>
+<h2 id="format">Format</h2>
+<p>The mime.types file is a list of whitespace-separated columns. The
+first column represents the mime type, all following columns are file
+extensions.</p>
+<p>Lines starting with a hash character (#) are recognized as comments,
+and are ignored.</p>
+<p>Example:</p>
+<pre><code># comment
+application/x-example   exmpl   ex</code></pre>
+<p>This mime.types file would register the file extensions “exmpl” and
+“ex” to be recognized as the mime type
+<code>application/x-example</code>.</p>
+<h2 id="note">Note</h2>
+<p>Chawan only uses mime.types files for finding mailcap entries;
+buffers use an internal mime.types file for content type detection
+instead.</p>
+<p>The default mime.types file only includes file formats that buffers
+can handle, which is rather limited (at the time of writing, 7 file
+formats). Therefore it is highly recommended to configure at least one
+external mime.types file if you use mailcap.</p>
+<!-- MANON
+## See also
+
+**cha**(1)
+MANOFF -->
+</main>
+</body></html>

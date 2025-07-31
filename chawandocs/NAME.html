@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<!-- saved from url=(0035)https://chawan.net/doc/cha/cha.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+Chawan: NAME
+</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="https://chawan.net/favicon.ico">
+<style>
+    /* layout */
+*           { box-sizing: border-box; border-width: 0 }
+body            { display: flex; flex-direction: column }
+body            { min-height: 100vh; margin: 0 auto }
+header          { max-width: 60ch; display: flex; flex-wrap: wrap }
+header a        { display: block; flex: 1; font-size: larger }
+main            { width: 72ch; margin: 1em auto }
+@media(width<72ch){main { width: 100% }                        }
+footer          { float: right; font-style: italic }
+main            { display: flow-root; padding: 0 1ch }
+h1, h2, h3, h4, h5, h6  { font-size: inherit }
+table           { border-spacing: .5ch 0; margin: 0 -1ch }
+figure, img     { max-width: 100%; margin: 0 }
+figure          { padding: 1em 0 0 0 }
+figcaption      { text-align: center }
+pre         { padding-left: 1ch }
+@media(grid:0){ h1  { padding: 1ch 0 0; margin: 0 }
+        td, th  { padding: .3ch 1ch }
+    code, pre   { font-size: 15px }     }
+    /* colors */
+*           { color: white }
+header a        { background: #204A50 }
+header a.current    { background: #192C30 }
+header a:hover      { background: #192930 }
+body            { background: #102527 }
+main            { background: #103C40 }
+main a[href]        { color: #FFC6CB }
+th, td          { background: #113134 }
+tr:nth-child(2n) > *    { background: #102628 }
+    /* decoration */
+a[href]         { text-decoration: none }
+a[href]:hover       { text-decoration: underline }
+header a[href]:hover    { text-decoration: none }
+</style>
+</head>
+<body>
+<center>
+<header>
+<a href="https://chawan.net/index.html">Index</a> <a href="https://chawan.net/news/index.html">News</a> <a href="https://chawan.net/doc/index.html">Docs</a> <a href="https://chawan.net/issues.html">Issues</a> <a href="https://sr.ht/~bptato/chawan">Source</a>
+</header>
+</center>
+<main>
+<h1 id="name">NAME</h1>
+<p>cha - the Chawan text-mode browser</p>
+<h1 id="synopsis">SYNOPSIS</h1>
+<p><strong>cha</strong> [<strong>options</strong>] [<em>URL(s)</em> or
+<em>file(s)</em>...]</p>
+<h1 id="description">DESCRIPTION</h1>
+<p>Chawan is a text-mode browser. It can be used as a pager, or as a
+web/(S)FTP/gopher/gemini/file browser. It understands HTML and CSS, and
+when enabled by the user, can also execute JavaScript and display images
+(on terminals supporting Sixel or the Kitty image protocol.)</p>
+<p>Chawan can also be used as a general text-based document viewer as
+described in <strong>cha-mailcap</strong>(5), or as a hyperlinked man
+page viewer using <strong>mancha</strong>(1).</p>
+<p>This document describes the invocation of Chawan. For a list of
+default keybindings, type <em>cha about:chawan</em>. For a detailed
+description of the configuration format, see
+<strong>cha-config</strong>(5).</p>
+<h1 id="arguments">ARGUMENTS</h1>
+<p>On invocation, Chawan attempts to open all URL/file arguments
+supplied. If no URLs could successfully be opened, Chawan exits
+automatically.</p>
+<p>Chawan may also be started without specifying a file, if a file is
+provided through a pipe. In this case, you can specify the content type
+using the <strong>-T</strong> switch.</p>
+<h1 id="options">OPTIONS</h1>
+<p>All command line options have short forms (e.g.&nbsp;<strong>-d</strong>)
+and long forms (e.g.&nbsp;<strong>--dump</strong>).</p>
+<p>Long forms must be introduced with two dashes; when only a single
+dash is provided, each letter is parsed as a separate short form.</p>
+<p>In short form, it is also valid to provide values to arguments
+without a subsequent space. For example,
+<strong>-obuffer.images=true</strong> is valid.</p>
+<dl>
+<dt><strong>-c, --css</strong> <em>stylesheet</em></dt>
+<dd>
+<p>Temporarily modify the user stylesheet. If a user stylesheet is
+already being used, the stylesheet given is appended to that.</p>
+</dd>
+<dt><strong>-d, --dump</strong></dt>
+<dd>
+<p>Start in headless mode, and sequentially print the opened files to
+stdout. This option is implicitly enabled if stdout is not a tty
+(e.g.&nbsp;when piping <em>cha</em> output).</p>
+</dd>
+<dt><strong>-h, --help</strong></dt>
+<dd>
+<p>Print a short version of this page, then exit.</p>
+</dd>
+<dt><strong>-o, --opt</strong> <em>config</em></dt>
+<dd>
+<p>Pass temporary configuration options. This accepts the configuration
+format described in <strong>cha-config</strong>(5), so the passed string
+must be valid TOML.</p>
+<p>To ease specifying string parameters, unrecognized bare keywords are
+converted to strings. So this works:<br>
+<strong>--opt</strong> display.color-mode=<em>eight-bit</em>.<br>
+However, symbols and words starting with a number must still be quoted.
+(This means that you have to quote them twice to bypass shell
+quoting.)</p>
+</dd>
+<dt><strong>-r, --run</strong> <em>script</em>/<em>file</em></dt>
+<dd>
+<p>Execute the string provided as a JS script, or execute the supplied
+JS file. If the file ends in .mjs, it is executed as an ES module.</p>
+</dd>
+<dt><strong>-v, --version</strong></dt>
+<dd>
+<p>Print information about the browser's version, then exit.</p>
+</dd>
+<dt><strong>-C, --config</strong> <em>file</em></dt>
+<dd>
+<p>Override the default configuration search path. Both absolute and
+relative paths are allowed.</p>
+</dd>
+<dt><strong>-I, --input-charset</strong> <em>charset</em></dt>
+<dd>
+<p>Override the character set of all input files. Useful when Chawan is
+incorrectly recognizing the input character set.</p>
+<p>(If this happens often, consider changing the default input charset
+recognition list <em>encoding.document-charset</em> in the
+configuration.)</p>
+</dd>
+<dt><strong>-M, --monochrome</strong></dt>
+<dd>
+<p>Force monochrome output. Formatting (bold/italic/etc.) is not
+affected. This is a shortcut for <strong>-o
+display.color-mode=</strong><em>monochrome</em>.</p>
+</dd>
+<dt><strong>-O, --output-charset</strong> <em>charset</em></dt>
+<dd>
+<p>Override the output character set. This is a shortcut for <strong>-o
+encoding.display-charset=</strong><em>charset</em>.</p>
+</dd>
+<dt><strong>-T, --type</strong> <em>content-type</em></dt>
+<dd>
+<p>Override the content type of all input files. Useful when the content
+type cannot be guessed from the file extension, or when reading a
+non-plaintext file from stdin.</p>
+</dd>
+<dt><strong>-V, --visual</strong></dt>
+<dd>
+<p>When no files/URLs are passed, open the page specified in
+<em>start.visual-home</em> instead of printing a help screen.</p>
+</dd>
+<dt><strong>--</strong></dt>
+<dd>
+<p>Interpret all following arguments as files. For example, you can open
+a file named <em>-o</em>, using <em>cha</em> <strong>--</strong>
+<em>-o</em>.</p>
+</dd>
+</dl>
+<h1 id="environment">ENVIRONMENT</h1>
+<p>Certain environment variables are read and used by Chawan.</p>
+<dl>
+<dt><strong>TMPDIR</strong></dt>
+<dd>
+<p>When set, the default configuration stores temporary files inside
+this directory (and <em>/tmp/cha-tmp-user</em> otherwise.)</p>
+</dd>
+<dt><strong>HTTP_HOME</strong>, <strong>WWW_HOME</strong></dt>
+<dd>
+<p>When set, Chawan starts in visual mode by default and opens the page
+specified by one of these variables. <strong>HTTP_HOME</strong> takes
+precedence over <strong>WWW_HOME</strong>.</p>
+</dd>
+<dt><strong>CHA_DIR</strong></dt>
+<dd>
+<p>When set, it switches the configuration directory to the path
+specified.</p>
+</dd>
+<dt><strong>COLORTERM</strong></dt>
+<dd>
+<p>When set to <em>24bit</em> or <em>truecolor</em>, and the
+<em>display.color-mode</em> configuration option is set to
+<em>auto</em>, Chawan sets the color mode to true color.</p>
+</dd>
+<dt><strong>TERM</strong></dt>
+<dd>
+<p>Used by Chawan to determine which termcap entry to load. When not
+set, defaults to <em>xterm</em>.</p>
+</dd>
+<dt><strong>EDITOR</strong></dt>
+<dd>
+<p>Used to determine the editor to use when the <em>external.editor</em>
+configuration option is not set.</p>
+</dd>
+<dt><strong>LINES, COLUMNS</strong></dt>
+<dd>
+<p>Used as fallback values when window size detection fails.</p>
+</dd>
+</dl>
+<h1 id="see-also">SEE ALSO</h1>
+<p><strong>mancha</strong>(1), <strong>cha-config</strong>(5),
+<strong>cha-mailcap</strong>(5),
+<strong>cha-mime.types</strong>(5),<br>
+<strong>cha-localcgi</strong>(5), <strong>cha-urimethodmap</strong>(5),
+<strong>cha-protocols</strong>(7),<br>
+<strong>cha-image</strong>(7), <strong>cha-css</strong>(7),
+<strong>cha-troubleshooting</strong>(7),
+<strong>cha-terminal</strong>(7)</p>
+</main>
+</body></html>

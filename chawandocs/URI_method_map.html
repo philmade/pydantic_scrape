@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<!-- saved from url=(0044)https://chawan.net/doc/cha/urimethodmap.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+Chawan: URI method map support in Chawan
+</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="https://chawan.net/favicon.ico">
+<style>
+    /* layout */
+*           { box-sizing: border-box; border-width: 0 }
+body            { display: flex; flex-direction: column }
+body            { min-height: 100vh; margin: 0 auto }
+header          { max-width: 60ch; display: flex; flex-wrap: wrap }
+header a        { display: block; flex: 1; font-size: larger }
+main            { width: 72ch; margin: 1em auto }
+@media(width<72ch){main { width: 100% }                        }
+footer          { float: right; font-style: italic }
+main            { display: flow-root; padding: 0 1ch }
+h1, h2, h3, h4, h5, h6  { font-size: inherit }
+table           { border-spacing: .5ch 0; margin: 0 -1ch }
+figure, img     { max-width: 100%; margin: 0 }
+figure          { padding: 1em 0 0 0 }
+figcaption      { text-align: center }
+pre         { padding-left: 1ch }
+@media(grid:0){ h1  { padding: 1ch 0 0; margin: 0 }
+        td, th  { padding: .3ch 1ch }
+    code, pre   { font-size: 15px }     }
+    /* colors */
+*           { color: white }
+header a        { background: #204A50 }
+header a.current    { background: #192C30 }
+header a:hover      { background: #192930 }
+body            { background: #102527 }
+main            { background: #103C40 }
+main a[href]        { color: #FFC6CB }
+th, td          { background: #113134 }
+tr:nth-child(2n) > *    { background: #102628 }
+    /* decoration */
+a[href]         { text-decoration: none }
+a[href]:hover       { text-decoration: underline }
+header a[href]:hover    { text-decoration: none }
+</style>
+</head>
+<body>
+<center>
+<header>
+<a href="https://chawan.net/index.html">Index</a> <a href="https://chawan.net/news/index.html">News</a> <a href="https://chawan.net/doc/index.html">Docs</a> <a href="https://chawan.net/issues.html">Issues</a> <a href="https://sr.ht/~bptato/chawan">Source</a>
+</header>
+</center>
+<main>
+<!-- MANON
+% cha-urimethodmap(5) | URI method map support in Chawan
+MANOFF -->
+<h1 id="uri-method-map-support-in-chawan">URI method map support in
+Chawan</h1>
+<p>Chawan can be used to map unrecognized protocols to known protocols
+using the <code>urimethodmap</code> format.</p>
+<p>The main use case for this is implementing handlers to protocols
+unknown to Chawan through a protocol that the browser <em>does</em>
+understand.</p>
+<h2 id="search-path">Search path</h2>
+<p>The search path for urimethodmap files can be overridden using the
+configuration variable <code>external.urimethodmap</code>.</p>
+<p>The default search path for urimethodmap files is:</p>
+<pre><code>$HOME/.urimethodmap:$HOME/.w3m/urimethodmap:/etc/urimethodmap:/usr/local/etc/urimethodmap</code></pre>
+<h2 id="format">Format</h2>
+<p>The urimethodmap format is taken 1:1 from w3m, with only some
+modifications to the interpretation of templates.</p>
+<p>A rough attempt at the formal description of this:</p>
+<pre><code>URIMethodMap-File = *URIMethodMap-line
+
+URIMethodMap-Line = Comment / URIMethodMap-Entry
+
+URIMethodMap-Entry = Protocol *WHITESPACE Template *WHITESPACE CR
+
+Protocol = 1*CHAR COLON
+
+Template = [see below]
+
+Comment = *WHITESPACE CR / "#" *CHAR CR</code></pre>
+<p>Note that an ASCII colon sign (:) must be present after the protocol
+name. However, the whitespace may be omitted.</p>
+<p>Examples:</p>
+<pre><code># This is ok:
+protocol:   /cgi-bin/interpret-protocol?%s
+# This is ok too:
+protocol:/cgi-bin/interpret-protocol?%s
+# Spaces and tabs are both allowed, so this is also ok:
+protocol:   /cgi-bin/interpret-protocol?%s
+# However, this is incorrect, because the colon sign is missing:
+protocol    /cgi-bin/interpret-protocol?%s</code></pre>
+<p>The redirection template is the target URL. If the string
+<code>%s</code> is contained in the template, it will be replaced by the
+target URL.</p>
+<p>Note: Chawan used to URL-encode the substituted URL in the past, but
+this is no longer the case.</p>
+<p>For compatibility with w3m, templates starting with
+<code>/cgi-bin/</code> and <code>file:/cgi-bin/</code> are special-cased
+and the starting string is replaced with <code>cgi-bin:</code>. So for
+example, the template <code>/cgi-bin/w3mdict.cgi</code> is the same as
+<code>cgi-bin:w3mdict.cgi</code> (and so is
+<code>file:/cgi-bin/w3mdict.cgi</code>).</p>
+<p>Example:</p>
+<pre><code># The following are the same in Chawan
+protocol:   /cgi-bin/interpret-protocol?%s
+protocol:   file:/cgi-bin/interpret-protocol?%s
+# Note: this last entry does not work in w3m.
+protocol:   cgi-bin:interpret-protocol?%s</code></pre>
+<p>Note however that absolute paths to cgi scripts are NOT special
+cased, so
+e.g.&nbsp;<code>file:///usr/local/libexec/w3m/cgi-bin/w3mdict.cgi</code> will
+simply open w3mdict.cgi in the file viewer. (Unlike in w3m, where it
+could run <code>w3mdict.cgi</code> depending on the user’s
+configuration.)</p>
+<h2 id="examples">Examples</h2>
+<h3 id="in-config.toml">In config.toml</h3>
+<pre><code># Following sets the urimethodmap search path to the path relative to the
+# configuration file. So if your configuration file is in
+# ~/.config/chawan/config.toml, Chawan will use ~/.config/chawan/urimethodmap.
+# If it's in ~/.chawan/config.toml, then it uses ~/.chawan/urimethodmap.
+[external]
+urimethodmap = "urimethodmap"</code></pre>
+<h3 id="in-urimethodmap">In urimethodmap</h3>
+<h4 id="magnet.cgi">magnet.cgi</h4>
+<pre><code># Use the `magnet.cgi` CGI shell script to pass magnet links to Transmission.
+magnet:     /cgi-bin/magnet.cgi?%s</code></pre>
+<p><code>magnet.cgi</code> can be found in the <code>bonus/</code>
+directory. You can also write a local CGI wrapper to pass the links to
+your BitTorrent client of choice.</p>
+<h4 id="dict">dict</h4>
+<p>In w3m, urimethodmap is commonly (ab)used to define shorthands for
+CGI scripts.</p>
+<p>This works in Chawan too; for an example, you could define a
+<code>tl:</code> shorthand like this:</p>
+<pre><code># (trans.cgi is a script you can find and study in the bonus/ directory.)
+tl:     /cgi-bin/trans.cgi?%s</code></pre>
+<p>Then, you could open the translation of any word using
+<code>tl:word</code>.</p>
+<p>Note however that Chawan has a more powerful facility for
+substitution shorthands like this in the form of omni-rules. So if you
+want to redirect to an on-line dictionary site with tl:word instead of
+providing a local CGI interface, it is probably easier to just use
+omni-rules instead of urimethodmap + local CGI redirection.</p>
+<p>Rule of thumb: if you find yourself writing local CGI scripts that
+just send a <code>Location:</code> header, maybe consider just using an
+omni-rule.</p>
+<!-- MANON
+
+## See also
+
+**cha**(1) **cha-localcgi**(5)
+MANOFF -->
+</main>
+</body></html>

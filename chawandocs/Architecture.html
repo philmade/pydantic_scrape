@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<!-- saved from url=(0044)https://chawan.net/doc/cha/architecture.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+Chawan: Architecture of Chawan
+</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="https://chawan.net/favicon.ico">
+<style>
+    /* layout */
+*           { box-sizing: border-box; border-width: 0 }
+body            { display: flex; flex-direction: column }
+body            { min-height: 100vh; margin: 0 auto }
+header          { max-width: 60ch; display: flex; flex-wrap: wrap }
+header a        { display: block; flex: 1; font-size: larger }
+main            { width: 72ch; margin: 1em auto }
+@media(width<72ch){main { width: 100% }                        }
+footer          { float: right; font-style: italic }
+main            { display: flow-root; padding: 0 1ch }
+h1, h2, h3, h4, h5, h6  { font-size: inherit }
+table           { border-spacing: .5ch 0; margin: 0 -1ch }
+figure, img     { max-width: 100%; margin: 0 }
+figure          { padding: 1em 0 0 0 }
+figcaption      { text-align: center }
+pre         { padding-left: 1ch }
+@media(grid:0){ h1  { padding: 1ch 0 0; margin: 0 }
+        td, th  { padding: .3ch 1ch }
+    code, pre   { font-size: 15px }     }
+    /* colors */
+*           { color: white }
+header a        { background: #204A50 }
+header a.current    { background: #192C30 }
+header a:hover      { background: #192930 }
+body            { background: #102527 }
+main            { background: #103C40 }
+main a[href]        { color: #FFC6CB }
+th, td          { background: #113134 }
+tr:nth-child(2n) > *    { background: #102628 }
+    /* decoration */
+a[href]         { text-decoration: none }
+a[href]:hover       { text-decoration: underline }
+header a[href]:hover    { text-decoration: none }
+</style>
+</head>
+<body>
+<center>
+<header>
+<a href="https://chawan.net/index.html">Index</a> <a href="https://chawan.net/news/index.html">News</a> <a href="https://chawan.net/doc/index.html">Docs</a> <a href="https://chawan.net/issues.html">Issues</a> <a href="https://sr.ht/~bptato/chawan">Source</a>
+</header>
+</center>
+<main>
+<h1 id="architecture-of-chawan">Architecture of Chawan</h1>
+<p>This document describes some aspects of how Chawan works.</p>
+<p><strong>Table of contents</strong></p>
+<ul>
+<li><a href="https://chawan.net/doc/cha/architecture.html#module-organization">Module organization</a></li>
+<li><a href="https://chawan.net/doc/cha/architecture.html#process-model">Process model</a>
+<ul>
+<li><a href="https://chawan.net/doc/cha/architecture.html#main-process">Main process</a></li>
+<li><a href="https://chawan.net/doc/cha/architecture.html#forkserver">Forkserver</a></li>
+<li><a href="https://chawan.net/doc/cha/architecture.html#loader">Loader</a></li>
+<li><a href="https://chawan.net/doc/cha/architecture.html#buffer">Buffer</a></li>
+</ul></li>
+<li><a href="https://chawan.net/doc/cha/architecture.html#opening-buffers">Opening buffers</a></li>
+<li><a href="https://chawan.net/doc/cha/architecture.html#parsing-html">Parsing HTML</a></li>
+<li><a href="https://chawan.net/doc/cha/architecture.html#javascript">JavaScript</a>
+<ul>
+<li><a href="https://chawan.net/doc/cha/architecture.html#general">General</a></li>
+<li><a href="https://chawan.net/doc/cha/architecture.html#js-in-the-pager">JS in the pager</a></li>
+<li><a href="https://chawan.net/doc/cha/architecture.html#js-in-the-buffer">JS in the buffer</a></li>
+</ul></li>
+<li><a href="https://chawan.net/doc/cha/architecture.html#css">CSS</a>
+<ul>
+<li><a href="https://chawan.net/doc/cha/architecture.html#parsing-cascading">Parsing, cascading</a></li>
+<li><a href="https://chawan.net/doc/cha/architecture.html#layout">Layout</a></li>
+<li><a href="https://chawan.net/doc/cha/architecture.html#rendering">Rendering</a></li>
+</ul></li>
+</ul>
+<h2 id="module-organization">Module organization</h2>
+<p>Explanation for the separate directories found in
+<code>src/</code>:</p>
+<ul>
+<li>config: configuration-related code. Mainly parsers for config
+files.</li>
+<li>css: CSS parsing, cascading, layout, rendering.</li>
+<li>html: DOM building, the DOM itself, forms, misc. JS APIs, etc. (It
+does not include the <a href="https://git.sr.ht/~bptato/chame">HTML
+parser</a>.)</li>
+<li>io: code for IPC, interaction with the file system, etc.</li>
+<li>local: code for the main process (i.e.&nbsp;the pager).</li>
+<li>server: code for processes other than the main process: buffer,
+forkserver, loader.</li>
+<li>types: mainly definitions of data types and things I didn’t know
+where to put.</li>
+<li>utils: things I didn’t know where to put part 2</li>
+</ul>
+<p>Additionally, “adapters” of various protocols and file formats can be
+found in <code>adapter/</code>:</p>
+<ul>
+<li>protocol: includes support for every protocol supported by
+Chawan.</li>
+<li>format: HTML converters for various text-based file formats,
+e.g.&nbsp;Markdown.</li>
+<li>img: image decoders and encoders. In general, these just read and
+output RGBA data through standard I/O (which may actually be a cache
+file; see the <a href="https://chawan.net/doc/cha/image.html">image docs</a> for details).</li>
+</ul>
+<h2 id="process-model">Process model</h2>
+<p>Described as a tree:</p>
+<ul>
+<li>cha (main process)
+<ul>
+<li>forkserver (forked immediately at startup)
+<ul>
+<li>loader</li>
+<li>buffer(s)</li>
+<li>local CGI scripts</li>
+</ul></li>
+<li>mailcap processes (e.g.&nbsp;md2html, feh, …)</li>
+<li>editor (e.g.&nbsp;vi)</li>
+</ul></li>
+</ul>
+<h3 id="main-process">Main process</h3>
+<p>The main process runs code related to the pager. This includes
+processing user input, printing buffer contents to the screen, and
+managing buffers in general. The complete list of buffers is only known
+to the main process.</p>
+<p>Mailcap commands are executed by the main process. This depends on
+knowing the content type of the resource, so the main process also reads
+in all network headers of navigation responses before launching a buffer
+process. More on this in <a href="https://chawan.net/doc/cha/architecture.html#opening-buffers">Opening
+buffers</a>.</p>
+<h3 id="forkserver">Forkserver</h3>
+<p>For forking the loader process, buffer processes and CGI processes, a
+fork server process is launched at the very beginning of every ‘cha’
+invocation.</p>
+<p>We use a fork server for two reasons:</p>
+<ol type="1">
+<li>It helps clean up child processes when the main process crashes. (We
+open a UNIX domain socket between the main process and the fork server,
+and kill all child processes from the fork server on EOF.)</li>
+<li>It allows us to start new buffer processes without cloning the
+pager’s entire address space. This reduces the impact of memory bugs
+somewhat, and also our memory usage.</li>
+</ol>
+<p>For convenience reasons, the fork server is not used for mailcap
+processes.</p>
+<h3 id="loader">Loader</h3>
+<p>The loader process takes requests from the main process and the
+buffer processes. Then, depending on the scheme, it performs one of the
+following steps:</p>
+<ul>
+<li><code>cgi-bin:</code> Start a CGI script, and read out its stdout
+into the response body. In certain cases it also streams the response
+into the cache.<br>
+This is also used for schemes like http/s, ftp, etc. by internally
+rewriting them into the appropriate <code>cgi-bin:</code> URL.</li>
+<li><code>stream:</code> Do the same thing as above, but read from a
+file descriptor passed to the loader beforehand. This is used when stdin
+is a file, e.g.&nbsp;<code>echo test | cha</code>. It is also used for
+mailcap entries with an x-htmloutput field.</li>
+<li><code>cache:</code> Read the file from the cache. This is used by
+the pager for the “view source” operation, and by buffers in the rare
+situation where their initial character encoding guess proves to be
+incorrect and they need to rewind the source.</li>
+<li><code>data:</code> Decode a data URL. This is done directly in the
+loader process because very long data URLs wouldn’t fit into the
+environment. (Plus, obviously, it’s more efficient this way.)</li>
+</ul>
+<p>The loader process distinguishes between clients (i.e processes)
+through their control stream (one end of a socketpair created by
+loader). This control stream is closed when the pager discards the
+buffer, so discarded buffers are unable to make further requests even if
+their process is still alive.</p>
+<h3 id="buffer">Buffer</h3>
+<p>Buffer processes parse HTML, optionally query external resources from
+loader, run styling, JS, and finally render the page to an internal
+canvas.</p>
+<p>Buffers are managed by the pager through Container objects. A UNIX
+domain socket is established between each buffer and the pager for
+IPC.</p>
+<h2 id="opening-buffers">Opening buffers</h2>
+<p>Scenario: the user attempts to navigate to <a href="https://example.org/" class="uri">https://example.org</a>.</p>
+<ol type="1">
+<li>pager creates a new container for the target URL.</li>
+<li>pager sends a request for “https://example.org” to the loader. Then,
+it registers the file descriptor in its selector, and does something
+else until poll() reports activity on the file descriptor.</li>
+<li>loader rewrites “https://example.org” into “cgi-bin:http”. It then
+runs the http CGI script with the appropriate environment variables set
+to parts of this URL and request headers.</li>
+<li>The http CGI script opens a connection to example.org. When
+connected, it starts writing headers it receives to stdout.</li>
+<li>loader parses these headers, and sends them to pager.</li>
+<li>pager reads in the headers, and decides what to do based on the
+Content-Type:
+<ul>
+<li>If Content-Type is found in mailcap, then the response body is piped
+into the command in that mailcap entry. If the entry has x-htmloutput,
+then the command’s stdout is taken instead of the response body, and
+Content-Type is set to text/html. Otherwise, the container is
+discarded.</li>
+<li>If Content-Type is text/html, then a new buffer process is created,
+which then parses the response body as HTML. If it is any
+<code>text/*</code> subtype, then the response is simply inserted into a
+<code>&lt;plaintext&gt;</code> tag.</li>
+<li>If Content-Type is not a <code>text/*</code> subtype, and no mailcap
+entry for it is found, then the user is prompted about where they wish
+to save the file.</li>
+</ul></li>
+</ol>
+<h2 id="cache">Cache</h2>
+<p>Chawan’s caching mechanism is largely inspired by that of w3m, which
+does not have a network cache. Instead, it simply saves source files to
+the disk before displaying them, and lets users view/edit the source
+without another network request.</p>
+<p>The only difference in Chawan is that it simultaneously streams files
+to the cache <em>and</em> buffers:</p>
+<ol type="1">
+<li>Client (pager or buffer) initiates request by sending a message to
+loader.</li>
+<li>Loader starts CGI script, reads headers, sends a response, and
+waits.</li>
+<li>Client now may send an “addCacheFile” message, which prompts loader
+to add a cache file for this request.</li>
+<li>Client sends “resume”, now loader will stream the response both to
+the client and the cache.</li>
+</ol>
+<p>Cached items may be shared between clients; this is how rewinding on
+wrong charset guess is implemented. They are also manually reference
+counted and are unlinked when their reference count drops to zero.</p>
+<p>The cache is used in the following ways:</p>
+<ul>
+<li>For view source and edit source operations.</li>
+<li>For rewinding buffers on incorrect charset guess. (In practice, this
+is almost never used, because the first chunk we read tends to determine
+the charset unambiguously.)</li>
+<li>For reading images multiple times after download. (At least two
+reads are needed, because the first pass only parses the headers.)</li>
+<li>As a memory buffer for image coding processes to mmap. (For details,
+see <a href="https://chawan.net/doc/cha/image.html">image.md</a>.)</li>
+</ul>
+<p>Crucially, the cache <em>does not</em> understand Cache-Control
+headers, and will never skip a download when requested by a user.
+Similarly, loading a “cache:” URL (e.g.&nbsp;view source) is guaranteed to
+never make a network request.</p>
+<p>Future directions: for non-JS buffers, we could kill idle processes
+and reload them on-demand from the cache. This could solve the problem
+of spawning too many processes that then do nothing.</p>
+<h2 id="parsing-html">Parsing HTML</h2>
+<p>The character decoder and the HTML parser are implementations of the
+WHATWG standards, and are available as <a href="https://git.sr.ht/~bptato/chagashi">separate</a> <a href="https://git.sr.ht/~bptato/chame">libraries</a>.</p>
+<p>Buffer processes decode and parse HTML documents asynchronously. When
+bytes from the network are exhausted, the buffer will 1) partially
+render the current document as-is, 2) return it to the pager so that the
+user can interact with the document.</p>
+<p>Character encoding detection is rather primitive; the list specified
+in <code>encoding.document-charset</code> is enumerated until either no
+errors are produced by the decoder, or no more charsets exist. In some
+extremely rare edge cases, the document is re-downloaded from the cache,
+but this pretty much never happens. (The most common case is that the
+UTF-8 validator just runs through the entire document without reporting
+errors.)</p>
+<p>The HTML parser then consumes the decoded (or validated) input
+buffer. In some cases, a script calls document.write and then the parser
+is called recursively. (Debugging this is not very fun.)</p>
+<h2 id="javascript">JavaScript</h2>
+<p>QuickJS is used by both the pager as a scripting language, and by
+buffers for running on-page scripts when JavaScript is enabled.</p>
+<p>The core JS related functionality has been separated out into the <a href="https://git.sr.ht/~bptato/monoucha">Monoucha</a> library, so it
+can be used outside of Chawan too.</p>
+<h3 id="general">General</h3>
+<p>To avoid having to type out all the type conversion &amp; error
+handling code manually, we have JS pragmas to automagically turn Nim
+procedures into JavaScript functions. (For details on the specific
+pragmas, see the <a href="https://git.sr.ht/~bptato/monoucha/tree/master/doc/manual.md">manual</a>.)</p>
+<p>(TODO: description of type conversion is somewhat outdated.)</p>
+<p>The type conversion itself is handled by the overloaded toJS function
+and the generic fromJS function. toJS returns a JSValue, the native data
+type of QuickJS. fromJS returns a Result[T, JSError], which is
+interpreted as follows:</p>
+<ul>
+<li>ok(T) is successful conversion.</li>
+<li>err(JSError) is an error in the conversion.</li>
+<li>ok(nil) for reference types is null. For non-nullable types, null is
+ok(none(T)).</li>
+<li>err(nil) is JS_EXCEPTION, i.e.&nbsp;an exception has been thrown and is
+being propagated.</li>
+</ul>
+<p>An additional point of interest is reference types: ref types
+registered with the registerType macro can be freely passed to JS, and
+the function-defining macros set functions on their JS prototypes. When
+a ref type is passed to JS, a shim JS object is associated with the Nim
+object, and will remain in memory until neither Nim nor JS has
+references to it.</p>
+<p>This means that you can expose Nim objects to JS and take Nim objects
+as arguments through the .jsfunc pragma (&amp; friends) without having
+to bother with manual reference counting. How this is achieved is
+detailed below. (TODO: this probably belongs in the Monoucha
+manual…)</p>
+<p>In fact, there is a complication in this system: QuickJS has a
+reference- counting GC, but Nim also has a reference-counting GC.
+Associating two objects that are managed by two separate GCs is
+problematic, because even if you can freely manage the references on
+both objects, you now have a cycle that only a cycle collector can break
+up. A cross-GC cycle collector is obviously out of question; then it
+would be easier to just replace the entire GC in one of the
+runtimes.</p>
+<p>So instead, we patch a hook into the QuickJS cycle collector. Every
+time a JS companion object of a Nim object would be freed, we first
+check if the Nim object still has references from Nim, and if yes,
+prevent the JS object from being freed by “moving” a reference to the JS
+object (i.e.&nbsp;unref Nim, ref JS).</p>
+<p>Then, if we want to pass the object to JS again, we add no references
+to the JS object, only to the Nim object. By this, we “moved” the
+reference back to JS.</p>
+<p>This way, the Nim cycle collector can destroy the object without
+problems if no more references to it exist. But also, if you set some
+properties on the JS companion object, it will remain even if no more
+references exist to it in JS for some time, only in Nim. i.e.&nbsp;this
+works:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb1-1"><a href="https://chawan.net/doc/cha/architecture.html#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">document</span><span class="op">.</span><span class="fu">querySelector</span>(<span class="st">"html"</span>)<span class="op">.</span><span class="at">canary</span> <span class="op">=</span> <span class="st">"chirp"</span><span class="op">;</span></span>
+<span id="cb1-2"><a href="https://chawan.net/doc/cha/architecture.html#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="bu">document</span><span class="op">.</span><span class="fu">querySelector</span>(<span class="st">"html"</span>)<span class="op">.</span><span class="at">canary</span>)<span class="op">;</span> <span class="co">/* chirp */</span></span></code></pre></div>
+<h3 id="js-in-the-pager">JS in the pager</h3>
+<p>Keybindings can be assigned JavaScript functions in the config, and
+then the pager executes those when the keybindings are pressed.</p>
+<p>Also, contents of the start.startup-script option are executed at
+startup. This is used when <code>cha</code> is called with the
+<code>-r</code> flag.</p>
+<p>There <em>is</em> an API, described at <a href="https://chawan.net/doc/cha/api.html">api.md</a>.
+Web APIs are exposed to pager too, but you cannot operate on the DOMs
+themselves from the pager, unless you create one yourself with
+DOMParser.parseFromString.</p>
+<p><a href="https://chawan.net/doc/cha/config.html">config.md</a> describes all commands that are
+used in the default config.</p>
+<h3 id="js-in-the-buffer">JS in the buffer</h3>
+<p>The DOM is implemented through the same wrappers as those in pager,
+except the pager modules are not exposed to buffer JS.</p>
+<p>Aside from document.write, it is mostly straightforward, and usually
+works OK, though too many things are missing to really make it
+useful.</p>
+<p>As for document.write: don’t ask. It works as far as I can tell, but
+I wouldn’t know why.</p>
+<h2 id="css">CSS</h2>
+<p>css/ contains CSS parsing, cascading, layout, and rendering.</p>
+<p>Note that CSS (at least 2.0 and onward) was designed for pixel-based
+displays, not for character-based ones. So we have to round a lot, and
+sometimes this goes wrong. (This is mostly solved by the omission of
+certain problematic properties and some heuristics in the layout
+engine.)</p>
+<p>Also, some (now) commonly used features like CSS grid are not
+implemented yet, so websites using those look ugly.</p>
+<h3 id="parsing-cascading">Parsing, cascading</h3>
+<p>The parser is not very interesting, it’s just an implementation of
+the CSS 3 parsing module. The latest iteration of the selector parser is
+pretty good. The media query parser and the CSS value parser both work
+OK, but are missing some commonly used features like variables.</p>
+<p>Cascading works OK. To speed up selector matching, various properties
+are hashed to filter out irrelevant CSS rules. However, no further style
+optimization exists yet (such as Bloom filters or style interning).</p>
+<p>Style calculation is incremental, and results are cached until an
+element’s style is invalidated, so re-styles are quite fast. (The
+invalidation logic is primitive, but as far as I can tell, it’s good
+enough in most cases.)</p>
+<h3 id="layout">Layout</h3>
+<p>Our layout engine is a rather “simple” procedural layout
+implementation. It runs in two passes:</p>
+<ol type="1">
+<li>Build a layout tree. Anonymous block and table boxes are generated
+here. After this pass, the tree is no longer mutated, only the
+<code>state</code> and <code>render</code> fields of the respective
+boxes.</li>
+<li>Position said boxes, always relative to their parent. This pass sets
+the values in the <code>state</code> field.</li>
+</ol>
+<p>In practice, step 2 is often repeated for subsections of the tree to
+resolve cyclic dependencies in CSS layout (e.g.&nbsp;in table, flex).
+However, the input sizes are cached between sub-layout passes, and the
+entire sub-layout is skipped if the sizes remained identical. (This
+usually happens if a box’s inner layout does not depend on its parent
+box’s sizes at all, e.g.&nbsp;with a non-percentage specified width.)</p>
+<p>Since we do not cache layout results, and the whole page is layouted,
+it gets quite slow on large documents. (Layout is being incrementally
+refactored to make implementing a cache simpler.)</p>
+<h3 id="rendering">Rendering</h3>
+<p>After layout is finished, the document is rendered onto a text-based
+canvas, which is represented as a sequence of strings associated with
+their formatting. (Right now, “formatting” also includes a reference to
+the respective DOM nodes; in the future, it won’t.)</p>
+<p>Additionally, boxes are assigned an offset in the <code>render</code>
+field here, which is used when jumping to anchors.</p>
+<p>The entire document is rendered, and this is our main performance
+bottleneck right now. (In fact, rendering takes much longer than layout.
+Styling is even slower, but that’s less of a problem because it only
+happens once for most elements.)</p>
+<p>The positive side of this design is that search is very simple (and
+fast), since we are just running regexes over a linear sequence of
+strings.</p>
+</main>
+</body></html>

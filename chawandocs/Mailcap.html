@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<!-- saved from url=(0039)https://chawan.net/doc/cha/mailcap.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+Chawan: Mailcap
+</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="https://chawan.net/favicon.ico">
+<style>
+    /* layout */
+*           { box-sizing: border-box; border-width: 0 }
+body            { display: flex; flex-direction: column }
+body            { min-height: 100vh; margin: 0 auto }
+header          { max-width: 60ch; display: flex; flex-wrap: wrap }
+header a        { display: block; flex: 1; font-size: larger }
+main            { width: 72ch; margin: 1em auto }
+@media(width<72ch){main { width: 100% }                        }
+footer          { float: right; font-style: italic }
+main            { display: flow-root; padding: 0 1ch }
+h1, h2, h3, h4, h5, h6  { font-size: inherit }
+table           { border-spacing: .5ch 0; margin: 0 -1ch }
+figure, img     { max-width: 100%; margin: 0 }
+figure          { padding: 1em 0 0 0 }
+figcaption      { text-align: center }
+pre         { padding-left: 1ch }
+@media(grid:0){ h1  { padding: 1ch 0 0; margin: 0 }
+        td, th  { padding: .3ch 1ch }
+    code, pre   { font-size: 15px }     }
+    /* colors */
+*           { color: white }
+header a        { background: #204A50 }
+header a.current    { background: #192C30 }
+header a:hover      { background: #192930 }
+body            { background: #102527 }
+main            { background: #103C40 }
+main a[href]        { color: #FFC6CB }
+th, td          { background: #113134 }
+tr:nth-child(2n) > *    { background: #102628 }
+    /* decoration */
+a[href]         { text-decoration: none }
+a[href]:hover       { text-decoration: underline }
+header a[href]:hover    { text-decoration: none }
+</style>
+</head>
+<body>
+<center>
+<header>
+<a href="https://chawan.net/index.html">Index</a> <a href="https://chawan.net/news/index.html">News</a> <a href="https://chawan.net/doc/index.html">Docs</a> <a href="https://chawan.net/issues.html">Issues</a> <a href="https://sr.ht/~bptato/chawan">Source</a>
+</header>
+</center>
+<main>
+<!-- MANON
+% cha-mailcap(5) | Mailcap support in Chawan
+MANOFF -->
+<h1 id="mailcap">Mailcap</h1>
+<p>By default, Chawan’s buffers only handle HTML and plain text. The
+<code>mailcap</code> file can be used to view other file formats using
+external commands, or to convert them to HTML/plain text before
+displaying them in Chawan.</p>
+<p>Note that Chawan’s default mime.types file only recognizes a few file
+extensions, which may result in your entries not being executed if your
+system lacks an /etc/mime.types file. Please consult the
+<!-- MANOFF --><a href="https://chawan.net/doc/cha/mime.types.html">mime.types</a><!-- MANON -->
+<!-- MANON **cha-mime.types**(5) MANOFF --> documentation for
+details.</p>
+<p>For an exact description of the mailcap format, see <a href="https://www.rfc-editor.org/rfc/rfc1524">RFC 1524</a>.</p>
+<h2 id="search-path">Search path</h2>
+<p>The search path for mailcap files is set by the configuration
+variable <code>external.mailcap</code>. This matches the recommended
+path in the RFC:</p>
+<pre><code>$HOME/.mailcap:/etc/mailcap:/usr/etc/mailcap:/usr/local/etc/mailcap</code></pre>
+<p>By default, mailcap entries are only executed if the user types
+<code>r</code> (run) after the prompt. Other options are to view the
+file with <code>t</code> (text), or to save the file with
+<code>s</code>.</p>
+<p>If a capital letter is typed (e.g.&nbsp;press shift and type
+<code>R</code>), then a corresponding entry is appended to
+<code>external.auto-mailcap</code> (default:
+<code>~/.chawan/auto.mailcap</code>, or
+<code>~/.config/chawan/config.toml</code> with XDG basedirs).
+<code>(T)ext</code> and <code>(S)ave</code> may also be used to append
+entries corresponding to the other display options.</p>
+<p>Entries in auto-mailcap are automatically executed, so it is
+recommended to add your Chawan-specific entries there (or just set it to
+your personal mailcap file).</p>
+<h2 id="format">Format</h2>
+<p>Chawan adheres to the format described in RFC 1524, with a few
+extensions.</p>
+<p>Note that text/html and text/plain entries are ignored.</p>
+<h3 id="templating">Templating</h3>
+<p><code>%s</code>, <code>%t</code>, and named content type fields like
+<code>%{charset}</code> work as described in the standard.</p>
+<p>If no quoting is applied, Chawan quotes the templates automatically.
+(This works with $(command substitutions) as well.)</p>
+<p>The non-standard template %u may be specified to get the original URL
+of the resource. This is a Netscape extension that may not be compatible
+with other implementations. As an alternative, the
+<code>$MAILCAP_URL</code> environment variable is set to the same
+value.</p>
+<h3 id="fields">Fields</h3>
+<p>The <code>test</code>, <code>nametemplate</code>,
+<code>needsterminal</code> and <code>copiousoutput</code> fields are
+recognized. The non-standard <code>x-htmloutput</code>,
+<code>x-ansioutput</code>, <code>x-saveoutput</code> and
+<code>x-needsstyle</code> extension fields are also recognized.</p>
+<ul>
+<li>When the <code>test</code> named field is specified, the mailcap
+entry is only used if the test command returns 0.<br>
+Warning: as of now, <code>%s</code> does not work with
+<code>test</code>; <code>test</code> named fields with a <code>%s</code>
+template are skipped, and no data is piped into <code>test</code>
+commands.</li>
+<li><code>copiousoutput</code> makes Chawan redirect the output of the
+external command’s output into a new buffer. If either x-htmloutput or
+x-ansioutput is defined too, then it is ignored.</li>
+<li>The <code>x-htmloutput</code> extension field behaves the same as
+<code>copiousoutput</code>, but makes Chawan interpret the command’s
+output as HTML.</li>
+<li><code>x-ansioutput</code> pipes the output through the “text/x-ansi”
+content type handler, so that ANSI colors, formatting, etc. are
+displayed correctly.</li>
+<li><code>x-saveoutput</code> prompts the user to save the entry’s
+output in a file.</li>
+<li><code>x-needsstyle</code> forces CSS to be processed for the
+specific type, even if styling is disabled in the config. Only useful
+when combined with <code>x-htmloutput</code>.</li>
+<li><code>needsterminal</code> hands over control of the terminal to the
+command while it is running. Note: as of now, <code>needsterminal</code>
+does nothing if either <code>copiousoutput</code> or
+<code>x-htmloutput</code> is specified.</li>
+<li>For a description of <code>nametemplate</code>, see the RFC.</li>
+</ul>
+<h2 id="examples">Examples</h2>
+<p>I recommend placing entries in <code>~/.chawan/auto.mailcap</code>
+(or <code>~/.config/chawan/auto.mailcap</code> if you use XDG
+basedirs).</p>
+<pre><code># Note: these examples require an entry in mime.types that sets e.g. md as
+# the markdown content type.
+
+# Handle markdown files using pandoc.
+text/markdown; pandoc - -f markdown -t html -o -; x-htmloutput
+
+# Show syntax highlighting for JavaScript source files using bat.
+text/javascript; bat -f -l es6 --file-name "${MAILCAP_URL:-STDIN}" -; x-ansioutput
+
+# Play music using mpv, and hand over control of the terminal until mpv exits.
+audio/*; mpv -; needsterminal
+
+# Play videos using mpv in the background, redirecting its standard output
+# and standard error to /dev/null.
+video/*; mpv -
+
+# Open docx files using LibreOffice Writer.
+application/vnd.openxmlformats-officedocument.wordprocessingml.document; lowriter %s
+# (Wow that was ugly.)
+
+# Display manpages using pandoc. (Make sure the mime type matches the one
+# set in your mime.types file for extensions .1, .2, .3, ...)
+application/x-troff-man; pandoc - -f man -t html -o -; x-htmloutput
+
+# epub -&gt; HTML using pandoc. (Again, don't forget to adjust mime.types.)
+# We set http_proxy to keep it from downloading whatever through http/s.
+application/epub+zip; http_proxy=localhost:0 pandoc - -f epub \
+--embed-resources --standalone; x-htmloutput
+
+# Following entry will be ignored, as text/html is supported natively by Chawan.
+text/html; cha -dT text/html -I %{charset}; copiousoutput</code></pre>
+<!-- MANON
+## See also
+
+**cha**(1)
+MANOFF -->
+</main>
+</body></html>

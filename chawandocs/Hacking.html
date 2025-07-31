@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<!-- saved from url=(0039)https://chawan.net/doc/cha/hacking.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+Chawan: Hacking
+</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="https://chawan.net/favicon.ico">
+<style>
+    /* layout */
+*           { box-sizing: border-box; border-width: 0 }
+body            { display: flex; flex-direction: column }
+body            { min-height: 100vh; margin: 0 auto }
+header          { max-width: 60ch; display: flex; flex-wrap: wrap }
+header a        { display: block; flex: 1; font-size: larger }
+main            { width: 72ch; margin: 1em auto }
+@media(width<72ch){main { width: 100% }                        }
+footer          { float: right; font-style: italic }
+main            { display: flow-root; padding: 0 1ch }
+h1, h2, h3, h4, h5, h6  { font-size: inherit }
+table           { border-spacing: .5ch 0; margin: 0 -1ch }
+figure, img     { max-width: 100%; margin: 0 }
+figure          { padding: 1em 0 0 0 }
+figcaption      { text-align: center }
+pre         { padding-left: 1ch }
+@media(grid:0){ h1  { padding: 1ch 0 0; margin: 0 }
+        td, th  { padding: .3ch 1ch }
+    code, pre   { font-size: 15px }     }
+    /* colors */
+*           { color: white }
+header a        { background: #204A50 }
+header a.current    { background: #192C30 }
+header a:hover      { background: #192930 }
+body            { background: #102527 }
+main            { background: #103C40 }
+main a[href]        { color: #FFC6CB }
+th, td          { background: #113134 }
+tr:nth-child(2n) > *    { background: #102628 }
+    /* decoration */
+a[href]         { text-decoration: none }
+a[href]:hover       { text-decoration: underline }
+header a[href]:hover    { text-decoration: none }
+</style>
+</head>
+<body>
+<center>
+<header>
+<a href="https://chawan.net/index.html">Index</a> <a href="https://chawan.net/news/index.html">News</a> <a href="https://chawan.net/doc/index.html">Docs</a> <a href="https://chawan.net/issues.html">Issues</a> <a href="https://sr.ht/~bptato/chawan">Source</a>
+</header>
+</center>
+<main>
+<h1 id="hacking">Hacking</h1>
+<p>Some notes on modifying Chawan’s code.</p>
+<h2 id="style">Style</h2>
+<p>Refer to the <a href="https://nim-lang.org/docs/nep1.html">NEP1</a>
+for the basics. Also, try to keep the style of existing code.</p>
+<h3 id="casing">Casing</h3>
+<p>Everything is camelCase. Enums are camelCase too, but the first part
+is an abbreviation of the type name. e.g.&nbsp;members of
+<code>SomeEnum</code> start with <code>se</code>.</p>
+<p>Exceptions:</p>
+<ul>
+<li>Types/constants use PascalCase. enums in cssvalues use PascalCase
+too, to avoid name collisions.</li>
+<li>Module-local templates use snake_case.</li>
+<li>We keep style of external C libraries, which is often
+snake_case.</li>
+<li>Chame is stuck with <code>SCREAMING_SNAKE_CASE</code> for its enums.
+This is unfortunate, but does not warrant an API breakage.</li>
+</ul>
+<p>Rationale: consistency.</p>
+<h3 id="wrapping">Wrapping</h3>
+<p>80 chars per line.</p>
+<p>Exceptions: URL comments.</p>
+<p>Rationale: makes it easier to edit in vi.</p>
+<h3 id="spacing">Spacing</h3>
+<p>No blank lines inside procedures (and other code blocks). A single
+blank line separates two procs, type defs, etc. If your proc doesn’t fit
+on two 24-line screens, split it up into more procs instead of inserting
+blank lines.</p>
+<p>Exceptions: none. Occasionally a proc will get larger than two
+screens, and that’s ok, but try to avoid it.</p>
+<p>Rationale: makes it easier to edit in vi.</p>
+<h3 id="param-separation">Param separation</h3>
+<p>Semicolons, not commas. e.g.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode nim"><code class="sourceCode nim"><span id="cb1-1"><a href="https://chawan.net/doc/cha/hacking.html#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Good</span></span>
+<span id="cb1-2"><a href="https://chawan.net/doc/cha/hacking.html#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">proc</span> <span class="st">foo</span><span class="kw">(</span>p1<span class="kw">:</span> <span class="at">int</span><span class="kw">;</span> p2<span class="kw">,</span> p3<span class="kw">:</span> <span class="at">string</span><span class="kw">;</span> p4 <span class="co">=</span> <span class="cn">true</span><span class="kw">)</span></span>
+<span id="cb1-3"><a href="https://chawan.net/doc/cha/hacking.html#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Bad</span></span>
+<span id="cb1-4"><a href="https://chawan.net/doc/cha/hacking.html#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">proc</span> <span class="st">bar</span><span class="kw">(</span>p1<span class="kw">:</span> <span class="at">int</span><span class="kw">,</span> p2<span class="kw">,</span> p3<span class="kw">:</span> <span class="at">string</span><span class="kw">,</span> p4 <span class="co">=</span> <span class="cn">true</span><span class="kw">)</span></span></code></pre></div>
+<p>Rationale: makes it easier to edit in vi.</p>
+<h3 id="naming">Naming</h3>
+<p>Prefer short names. Don’t copy verbose naming from the standard.</p>
+<p>Rationale: we aren’t a fruit company.</p>
+<h3 id="comments">Comments</h3>
+<p>Comment what is not obvious, don’t comment what is obvious. Whether
+something is obvious or not is left to your judgment.</p>
+<p>Don’t paste standard prose into the code unless you’re making a
+point. If you do, abridge the prose.</p>
+<p>Rationale: common sense, copyright.</p>
+<h2 id="general-coding-tips-and-guidelines">General coding tips and
+guidelines</h2>
+<p>These are not hard rules, but please try to follow them unless the
+situation demands otherwise.</p>
+<h3 id="features-to-avoid">Features to avoid</h3>
+<p>List of Nim features/patterns that sound like a good idea but aren’t,
+for non-obvious reasons.</p>
+<h4 id="exceptions">Exceptions</h4>
+<p>Exceptions don’t work well with JS embedding; use Result/Opt/Option
+instead. Note that these kill RVO, so if you’re returning large objects,
+either make them <code>ref</code>, or use manual RVO (return bool, set
+var param).</p>
+<p>In new modules, always specify:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode nim"><code class="sourceCode nim"><span id="cb2-1"><a href="https://chawan.net/doc/cha/hacking.html#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This is an example module.</span></span>
+<span id="cb2-2"><a href="https://chawan.net/doc/cha/hacking.html#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># After any header comments, but before imports:</span></span>
+<span id="cb2-3"><a href="https://chawan.net/doc/cha/hacking.html#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="https://chawan.net/doc/cha/hacking.html#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">{.push raises: [].}</span></span>
+<span id="cb2-5"><a href="https://chawan.net/doc/cha/hacking.html#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="https://chawan.net/doc/cha/hacking.html#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">...</span></span>
+<span id="cb2-7"><a href="https://chawan.net/doc/cha/hacking.html#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="https://chawan.net/doc/cha/hacking.html#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># At the end of the file:</span></span>
+<span id="cb2-9"><a href="https://chawan.net/doc/cha/hacking.html#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="at">{.pop.}</span> <span class="co"># raises: []</span></span></code></pre></div>
+<h4 id="implicit-initialization">Implicit initialization</h4>
+<p>Avoid. The correct way to create an object:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode nim"><code class="sourceCode nim"><span id="cb3-1"><a href="https://chawan.net/doc/cha/hacking.html#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> myObj <span class="co">=</span> <span class="at">MyObject</span><span class="kw">(</span></span>
+<span id="cb3-2"><a href="https://chawan.net/doc/cha/hacking.html#cb3-2" aria-hidden="true" tabindex="-1"></a>  param1<span class="kw">:</span> x<span class="kw">,</span></span>
+<span id="cb3-3"><a href="https://chawan.net/doc/cha/hacking.html#cb3-3" aria-hidden="true" tabindex="-1"></a>  param2<span class="kw">:</span> y</span>
+<span id="cb3-4"><a href="https://chawan.net/doc/cha/hacking.html#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># if there's e.g. a param3 too, it's OK to leave it out and let it be</span></span>
+<span id="cb3-5"><a href="https://chawan.net/doc/cha/hacking.html#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># default initialized.</span></span>
+<span id="cb3-6"><a href="https://chawan.net/doc/cha/hacking.html#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">)</span></span></code></pre></div>
+<p>For arrays, use:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode nim"><code class="sourceCode nim"><span id="cb4-1"><a href="https://chawan.net/doc/cha/hacking.html#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">var</span> buf1 <span class="co">=</span> <span class="at">array</span><span class="kw">[</span><span class="dv">1234</span><span class="kw">,</span> <span class="at">char</span><span class="kw">].</span><span class="at">default</span> <span class="co"># when you need 0-initialization</span></span>
+<span id="cb4-2"><a href="https://chawan.net/doc/cha/hacking.html#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">var</span> <span class="fu">buf2</span> <span class="at">{.noinit.}</span><span class="kw">:</span> <span class="at">array</span><span class="kw">[</span><span class="dv">1234</span><span class="kw">,</span> <span class="at">char</span><span class="kw">]</span> <span class="co"># when you don't need 0-initialization</span></span></code></pre></div>
+<p>For primitive types, just set them to 0, ““, etc.</p>
+<h4 id="copying-operations">Copying operations</h4>
+<p><code>substr</code> and <code>x[n..m]</code> copies. Try to use
+<code>toOpenArray</code> instead, which is a non-copying slice.
+(Obviously, you should use <code>substr</code> if you <em>need</em> to
+copy.)</p>
+<p>Note that <code>=</code> usually copies. If you’re copying a large
+object a lot, you may want to set its type to <code>ref</code>.</p>
+<p>Beware of <code>pairs</code> on sequences of objects; it copies. Use
+<code>mypairs</code> if you don’t need mutation, <code>mpairs</code> if
+you do:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode nim"><code class="sourceCode nim"><span id="cb5-1"><a href="https://chawan.net/doc/cha/hacking.html#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">proc</span> <span class="st">foo</span><span class="kw">(</span>objs<span class="kw">:</span> <span class="at">openArray</span><span class="kw">[</span><span class="at">SomeObj</span><span class="kw">])</span> <span class="co">=</span></span>
+<span id="cb5-2"><a href="https://chawan.net/doc/cha/hacking.html#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> i<span class="kw">,</span> obj <span class="co">in</span> objs<span class="kw">:</span> <span class="co"># this copies. obj is of type "SomeObj".</span></span>
+<span id="cb5-3"><a href="https://chawan.net/doc/cha/hacking.html#cb5-3" aria-hidden="true" tabindex="-1"></a>    obj<span class="kw">.</span><span class="fu">bar</span><span class="kw">(</span>i<span class="kw">)</span></span>
+<span id="cb5-4"><a href="https://chawan.net/doc/cha/hacking.html#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># import utils/twtstr to use mypairs.</span></span>
+<span id="cb5-5"><a href="https://chawan.net/doc/cha/hacking.html#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> i<span class="kw">,</span> obj <span class="co">in</span> objs<span class="kw">.</span><span class="at">mypairs</span><span class="kw">:</span> <span class="co"># doesn't copy. obj is of type "lent "SomeObj".</span></span>
+<span id="cb5-6"><a href="https://chawan.net/doc/cha/hacking.html#cb5-6" aria-hidden="true" tabindex="-1"></a>    obj<span class="kw">.</span><span class="fu">bar</span><span class="kw">(</span>i<span class="kw">)</span></span>
+<span id="cb5-7"><a href="https://chawan.net/doc/cha/hacking.html#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> i<span class="kw">,</span> obj <span class="co">in</span> objs<span class="kw">.</span><span class="at">mpairs</span><span class="kw">:</span> <span class="co"># doesn't copy. obj is of type "var SomeObj".</span></span>
+<span id="cb5-8"><a href="https://chawan.net/doc/cha/hacking.html#cb5-8" aria-hidden="true" tabindex="-1"></a>    obj<span class="kw">.</span><span class="at">i</span> <span class="co">=</span> i</span></code></pre></div>
+<h3 id="fixing-cyclic-imports">Fixing cyclic imports</h3>
+<p>In Nim, you can’t have circular dependencies between modules. This
+gets unwieldy as the HTML/DOM/etc. specs are a huge cyclic OOP mess.</p>
+<p>The preferred workaround is global function pointer variables:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode nim"><code class="sourceCode nim"><span id="cb6-1"><a href="https://chawan.net/doc/cha/hacking.html#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Forward declaration hack</span></span>
+<span id="cb6-2"><a href="https://chawan.net/doc/cha/hacking.html#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">var</span> forwardDeclImpl<span class="co">*</span><span class="kw">:</span> <span class="kw">proc(</span>window<span class="kw">:</span> <span class="at">Window</span><span class="kw">;</span> x<span class="kw">,</span> y<span class="kw">:</span> <span class="at">int</span><span class="kw">)</span> <span class="at">{.nimcall, raises: [].}</span></span>
+<span id="cb6-3"><a href="https://chawan.net/doc/cha/hacking.html#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># in the other module:</span></span>
+<span id="cb6-4"><a href="https://chawan.net/doc/cha/hacking.html#cb6-4" aria-hidden="true" tabindex="-1"></a>forwardDeclImpl <span class="co">=</span> <span class="kw">proc(</span>window<span class="kw">:</span> <span class="at">Window</span><span class="kw">;</span> x<span class="kw">,</span> y<span class="kw">:</span> <span class="at">int</span><span class="kw">)</span> <span class="co">=</span></span>
+<span id="cb6-5"><a href="https://chawan.net/doc/cha/hacking.html#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># [...]</span></span></code></pre></div>
+<p>Don’t forget to make it <code>.nimcall</code>, and to comment
+“Forward declaration hack” above. (Hopefully we can remove these once
+Nim supports cyclic module dependencies.)</p>
+<h2 id="debugging">Debugging</h2>
+<p>Note: following text assumes you are compiling in debug mode, i.e.
+<code>make TARGET=debug</code>.</p>
+<h3 id="the-universal-debugger">The universal debugger</h3>
+<p>“eprint x, y” prints x, y to stderr, space separated.</p>
+<p>Normally you can view what you printed through the M-c M-c (escape +
+c twice) console. Except when you’re printing from the pager, then do
+<code>cha [...] 2&gt;a</code> and check the “a” file.</p>
+<p>Sometimes, printing to the console triggers a self-feeding loop of
+printing to the console. To avoid this, disable the console buffer:
+<code>cha [...] -o start.console-buffer=false 2&gt;a</code>. Then check
+the “a” file.</p>
+<p>You can also inspect open buffers from the console. Note that you
+must run these <em>before</em> switching to the console buffer
+(i.e.&nbsp;before the second M-c), or it will show info about the console
+buffer.</p>
+<ul>
+<li><code>pager.process</code>: the current buffer’s PID.</li>
+<li><code>pager.cacheFile</code>: the current buffer’s cache file.</li>
+<li><code>pager.cacheId</code>: the cache ID of said file. Open the
+<code>cache:id</code> URL to view the file.</li>
+</ul>
+<h3 id="gdb">gdb</h3>
+<p>gdb should work fine too. You can attach it to buffers by putting a
+long sleep call in runBuffer, then retrieving the PID as described
+above. Note that this will upset seccomp, so you should compile with
+<code>make TARGET=debug DANGER_DISABLE_SANDBOX=1</code>.</p>
+<h3 id="debugging-layout-bugs">Debugging layout bugs</h3>
+<p>One possible workflow:</p>
+<ul>
+<li>Save page from your favorite graphical browser.</li>
+<li>Binary search the HTML by deleting half of the file at each step. Be
+careful to not remove any stylesheet LINK or STYLE tags.</li>
+<li>Binary search the CSS using the same method. You can format it using
+the graphical browser’s developer tools.</li>
+</ul>
+<p>The <code>-o start.console-buffer=false</code> trick (see above) is
+especially useful when debugging a flow layout path that the console
+buffer also needs.</p>
+<p>Don’t forget to add a test case after the fix:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="https://chawan.net/doc/cha/hacking.html#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> cha <span class="at">-C</span> test/layout/config.toml test/layout/my-test-case.html <span class="op">&gt;</span> test/layout/my-test-case.expected</span></code></pre></div>
+<p>Use <code>config.color.toml</code> and
+<code>my-test-case.color.expected</code> to preserve colors.</p>
+<h3 id="sandbox-violations">Sandbox violations</h3>
+<p>You got a syscall number (assuming you’re on Linux); look it up in
+the Linux syscall table for your architecture.</p>
+<p>To get more context on what happened, you can run
+<code>strace -f ./cha -o start.console-buffer [...] 2&gt;a</code>,
+trigger the crash, then search for the last occurrence of “— SIGSYS”.
+Then search backwards on the PID to see the last syscalls.</p>
+<p>(Incidentally, strace also shows the syscall name, so it may be
+easier to check like that than looking it up in the syscall table.)</p>
+<h2 id="resources">Resources</h2>
+<p>You may find these links useful.</p>
+<h3 id="whatwg">WHATWG</h3>
+<ul>
+<li>HTML: <a href="https://html.spec.whatwg.org/multipage/" class="uri">https://html.spec.whatwg.org/multipage/</a>. Includes
+everything and then some more.</li>
+<li>DOM: <a href="https://dom.spec.whatwg.org/" class="uri">https://dom.spec.whatwg.org/</a>. Includes events, basic
+node-related stuff, etc.</li>
+<li>Encoding: <a href="https://encoding.spec.whatwg.org/" class="uri">https://encoding.spec.whatwg.org/</a>. The core encoding
+algorithms are already implemented in Chagashi, so this is now mainly
+relevant for the TextEncoder JS interface (js/encoding).</li>
+<li>URL: <a href="https://url.spec.whatwg.org/" class="uri">https://url.spec.whatwg.org/</a>. For some incomprehensible
+reason, it’s defined as an equally incomprehensible state machine.
+types/url implements this.</li>
+<li>Fetch: <a href="https://fetch.spec.whatwg.org/" class="uri">https://fetch.spec.whatwg.org/</a>. Networking stuff. Also
+see <a href="https://xhr.spec.whatwg.org/" class="uri">https://xhr.spec.whatwg.org</a> for XMLHttpRequest.</li>
+<li>Web IDL: <a href="https://webidl.spec.whatwg.org/" class="uri">https://webidl.spec.whatwg.org/</a>. Relevant for
+Monoucha/JS bindings.</li>
+</ul>
+<p>Note that these sometimes change daily, especially the HTML
+standard.</p>
+<h3 id="css-standards">CSS standards</h3>
+<ul>
+<li>CSS 2.1: <a href="https://www.w3.org/TR/CSS2/" class="uri">https://www.w3.org/TR/CSS2/</a>. There’s also an “Editor’s
+Draft” 2.2 version: <a href="https://drafts.csswg.org/css2/" class="uri">https://drafts.csswg.org/css2/</a>. Not many differences,
+but usually it’s worth to check 2.2 too.</li>
+</ul>
+<p>Good news is that unlike WHATWG specs, these don’t change daily. Bad
+news is that CSS 2.1 was the last real CSS version, and newer features
+are spread accross a bunch of random documents with questionable status
+of stability: <a href="https://www.w3.org/Style/CSS/specs.en.html" class="uri">https://www.w3.org/Style/CSS/specs.en.html</a>.</p>
+<h3 id="other-standards">Other standards</h3>
+<p>It’s unlikely that you will need these, but for completeness’
+sake:</p>
+<ul>
+<li>TOML: <a href="https://toml.io/en/v1.0.0" class="uri">https://toml.io/en/v1.0.0</a>. config.toml’s base
+language.</li>
+<li>Mailcap: <a href="https://www.rfc-editor.org/rfc/rfc1524" class="uri">https://www.rfc-editor.org/rfc/rfc1524</a>.</li>
+<li>Cookies: <a href="https://www.rfc-editor.org/rfc/rfc6265" class="uri">https://www.rfc-editor.org/rfc/rfc6265</a>.</li>
+<li>EcmaScript: <a href="https://tc39.es/ecma262/" class="uri">https://tc39.es/ecma262/</a> is the latest draft.</li>
+</ul>
+<h3 id="nim-docs">Nim docs</h3>
+<ul>
+<li>Manual: <a href="https://nim-lang.org/docs/manual.html" class="uri">https://nim-lang.org/docs/manual.html</a>. A detailed
+description of all language features.</li>
+<li>Standard library docs: <a href="https://nim-lang.org/docs/lib.html" class="uri">https://nim-lang.org/docs/lib.html</a>. Everything found in
+the “std/” namespace.</li>
+</ul>
+<h3 id="mdn">MDN</h3>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web" class="uri">https://developer.mozilla.org/en-US/docs/Web</a></p>
+<p>MDN is useful if you don’t quite understand how a certain feature is
+supposed to work. It also has links to relevant standards in page
+footers.</p>
+</main>
+</body></html>

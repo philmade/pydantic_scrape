@@ -1,0 +1,55 @@
+# WORKING Chawan Browser Configuration for Pydantic Scrape
+# BREAKTHROUGH: scripting = "app" enables actual page content access!
+# Only includes supported options for chawan v0.2.2
+
+[buffer]
+# Enable numbered link markers for AI navigation - THIS IS THE CRITICAL SETTING
+mark-links = true
+
+# Enable JavaScript execution - THIS IS THE KEY TO SUCCESS!
+scripting = "app"  # "app" mode enables proper JS compatibility for modern sites
+
+# Disable CSS styling for cleaner content extraction
+styling = false
+
+# Enable cookies with persistent storage - CRITICAL FOR COOKIE CONSENT
+cookie = "save"
+
+# Enable autofocus to allow scripts to interact with elements
+autofocus = true
+
+[external]
+# Cookie storage file (curl format)
+cookie-file = "cookies.txt"
+
+[page]
+# Configure user agent to avoid bot detection
+user-agent = "Mozilla/5.0 (compatible; ChawanBrowser/0.2.2; AI-Agent)"
+
+[start]
+# Automatically accept cookies on page load - BREAKTHROUGH SOLUTION!
+startup-script = """
+setTimeout(() => {
+    try {
+        // Look for the specific cookie accept button we found
+        var button = document.getElementById('cookie-accept-button');
+        if (button && button.offsetWidth > 0) {
+            button.click();
+        } else {
+            // Fallback to class-based search
+            var buttons = document.getElementsByClassName('cookie-accept-button');
+            if (buttons.length > 0 && buttons[0].offsetWidth > 0) {
+                buttons[0].click();
+            }
+        }
+    } catch (e) {
+        // Silent fail - don't break page loading
+    }
+}, 2000);
+"""
+
+# Site-specific configurations for cookie-heavy sites  
+[[siteconf]]
+host = ".*"  # All sites - use "app" mode for full compatibility
+scripting = "app"
+cookie = "save"

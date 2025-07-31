@@ -1,0 +1,35 @@
+# Super-Optimized Chawan Configuration for Maximum Speed
+# Removes all performance bottlenecks while maintaining AI functionality
+
+[buffer]
+# Essential for AI navigation
+mark-links = true
+
+# Basic JS instead of "app" mode - much faster
+scripting = false
+
+# Keep CSS disabled - major performance win + removes visual noise
+styling = false
+
+# Keep cookies for functionality but no startup script overhead
+cookie = "save"
+
+# Disable all non-essential features for speed
+autofocus = false
+images = false
+
+[display]
+# Minimize display processing
+image-mode = "none"
+
+[external]
+cookie-file = "cookies.txt"
+
+# NO startup script delay - removes 2+ second overhead!
+# [start]
+# startup-script = ""  # REMOVED for speed
+
+# Minimal site config
+[[siteconf]]
+host = ".*"
+cookie = "save"

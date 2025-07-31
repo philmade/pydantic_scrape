@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<!-- saved from url=(0035)https://chawan.net/doc/cha/api.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+Chawan: Chawan’s command API
+</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="https://chawan.net/favicon.ico">
+<style>
+    /* layout */
+*           { box-sizing: border-box; border-width: 0 }
+body            { display: flex; flex-direction: column }
+body            { min-height: 100vh; margin: 0 auto }
+header          { max-width: 60ch; display: flex; flex-wrap: wrap }
+header a        { display: block; flex: 1; font-size: larger }
+main            { width: 72ch; margin: 1em auto }
+@media(width<72ch){main { width: 100% }                        }
+footer          { float: right; font-style: italic }
+main            { display: flow-root; padding: 0 1ch }
+h1, h2, h3, h4, h5, h6  { font-size: inherit }
+table           { border-spacing: .5ch 0; margin: 0 -1ch }
+figure, img     { max-width: 100%; margin: 0 }
+figure          { padding: 1em 0 0 0 }
+figcaption      { text-align: center }
+pre         { padding-left: 1ch }
+@media(grid:0){ h1  { padding: 1ch 0 0; margin: 0 }
+        td, th  { padding: .3ch 1ch }
+    code, pre   { font-size: 15px }     }
+    /* colors */
+*           { color: white }
+header a        { background: #204A50 }
+header a.current    { background: #192C30 }
+header a:hover      { background: #192930 }
+body            { background: #102527 }
+main            { background: #103C40 }
+main a[href]        { color: #FFC6CB }
+th, td          { background: #113134 }
+tr:nth-child(2n) > *    { background: #102628 }
+    /* decoration */
+a[href]         { text-decoration: none }
+a[href]:hover       { text-decoration: underline }
+header a[href]:hover    { text-decoration: none }
+</style>
+</head>
+<body>
+<center>
+<header>
+<a href="https://chawan.net/index.html">Index</a> <a href="https://chawan.net/news/index.html">News</a> <a href="https://chawan.net/doc/index.html">Docs</a> <a href="https://chawan.net/issues.html">Issues</a> <a href="https://sr.ht/~bptato/chawan">Source</a>
+</header>
+</center>
+<main>
+<!-- MANON
+% cha-api(7) | Chawan's command API
+MANOFF -->
+<h1 id="chawans-command-api">Chawan’s command API</h1>
+<p>As described in <!-- MANOFF -->the <a href="https://chawan.net/doc/cha/config.html">config</a>
+documentation,<!-- MANON --> <!-- MANON **cha-config**(5), MANOFF -->
+keypress combinations can be bound to actions.</p>
+<p>An action can be either a JavaScript expression, or a command defined
+in the <code>[cmd]</code> section of config.toml. For example, the
+following works:</p>
+<pre><code>gpn = 'n =&gt; pager.alert(n)' # e.g. 2gpn prints `2' to the status line</code></pre>
+<p>Note however, that JavaScript functions must be called with an
+appropriate <code>this</code> value. Unfortunately, this also means that
+the following does not work:</p>
+<pre><code>gpn = 'pager.alert' # broken!!!</code></pre>
+<p>To work around this limitation, actions have to wrap the target
+function in a closure, as above. However, this has very poor
+reusability; for more complex actions, you would have to copy and paste
+the entire function every time you re-bind it or call it from a
+different function.</p>
+<p>To fix this, it is possible to define a command in the
+<code>[cmd]</code> section:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode toml"><code class="sourceCode toml"><span id="cb3-1"><a href="https://chawan.net/doc/cha/api.html#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[cmd.my.namespace]</span></span>
+<span id="cb3-2"><a href="https://chawan.net/doc/cha/api.html#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">showNumber</span> <span class="op">=</span> <span class="st">'</span><span class="vs">n =&gt; pager.alert(n)</span><span class="st">'</span></span></code></pre></div>
+<p><code>my.namespace</code> can be anything you want; it is to avoid
+collisions when including multiple configs. Avoid setting it to
+<code>pager</code> or <code>line</code>, because these are used by the
+default config.</p>
+<p>Now you can call <code>cmd.my.namespace.showNumber()</code> from any
+other function, or just include it in an action:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode toml"><code class="sourceCode toml"><span id="cb4-1"><a href="https://chawan.net/doc/cha/api.html#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">'gpn'</span> <span class="op">=</span> <span class="st">'</span><span class="vs">cmd.my.namespace.showNumber</span><span class="st">'</span></span></code></pre></div>
+<h2 id="interfaces">Interfaces</h2>
+<h3 id="client">Client</h3>
+<p>The global object (<code>globalThis</code>) implements the
+<code>Client</code> interface. Documented functions of this are:</p>
+<table>
+<tbody><tr>
+<th>
+Property
+</th>
+<th>
+Description
+</th>
+</tr>
+<tr>
+<td>
+<code>quit()</code>
+</td>
+<td>
+Exit the browser.
+</td>
+</tr>
+<tr>
+<td>
+<code>suspend()</code>
+</td>
+<td>
+Temporarily suspend the browser, by delivering the client process a
+SIGTSTP signal.<br> Note: this suspends the entire process group.
+</td>
+</tr>
+<tr>
+<td>
+<code>readFile(path)</code>
+</td>
+<td>
+Read a file at <code>path</code>.<br> Returns the file’s content as a
+string, or null if the file does not exist.
+</td>
+</tr>
+<tr>
+<td>
+<code>writeFile(path, content)</code>
+</td>
+<td>
+Write <code>content</code> to the file at <code>path</code>.<br> Throws
+a TypeError if this failed for whatever reason.
+</td>
+</tr>
+<tr>
+<td>
+<code>getenv(name, fallback = null)</code>
+</td>
+<td>
+Get an environment variable by <code>name</code>.<br> Returns
+<code>fallback</code> if the variable does not exist.
+</td>
+</tr>
+<tr>
+<td>
+<code>setenv(name, value)</code>
+</td>
+<td>
+Set an environment variable by <code>name</code>.<br> Throws a type
+error if the operation failed (e.g.&nbsp;because the variable’s size exceeded
+an OS-specified limit.)
+</td>
+</tr>
+<tr>
+<td>
+<code>pager</code>
+</td>
+<td>
+The pager object. Implements <code>Pager</code>, as described below.
+</td>
+</tr>
+<tr>
+<td>
+<code>line</code>
+</td>
+<td>
+The line editor. Implements <code>LineEdit</code>, as described below.
+</td>
+</tr>
+<tr>
+<td>
+<code>config</code>
+</td>
+<td>
+The config object.<br> A currently incomplete interface for retrieving
+and setting configuration options. In general, names are the same as in
+config.toml, except all <code>-</code> (ASCII hyphen) characters are
+stripped and the next character is upper-cased.
+e.g.&nbsp;<code>external.cgi-dir</code> can be queried as
+<code>config.external.cgiDir</code>, etc.<br> Setting individual options
+sometimes works, but sometimes they do not get propagated as expected.
+Consider this an experimental API.<br> Currently, <code>siteconf</code>,
+<code>protocol</code> and <code>omnirule</code> values are not exposed
+to JS.<br> The configuration directory itself can be queried as
+<code>config.dir</code>.
+</td>
+</tr>
+</tbody></table>
+<p><code>Client</code> also implements various web standards normally
+available on the <code>Window</code> object on websites, e.g.&nbsp;fetch().
+Note however that it does <em>not</em> give access to JS objects in
+buffers, so e.g.&nbsp;<code>globalThis.document</code> is not available.</p>
+<h3 id="pager">Pager</h3>
+<p><code>Pager</code> is a separate interface from <code>Client</code>
+that gives access to the pager (i.e.&nbsp;browser chrome). It is accessible
+as <code>globalThis.pager</code>, or simply <code>pager</code>.</p>
+<p>Following properties (functions/getters) are defined by
+<code>Pager</code>:</p>
+<table>
+<tbody><tr>
+<th>
+Property
+</th>
+<th>
+Description
+</th>
+</tr>
+<tr>
+<td>
+<code>load(url)</code>
+</td>
+<td>
+Put the specified address into the URL bar, and optionally load it.<br>
+Note that this performs auto-expansion of URLs, so Chawan will expand
+any matching omni-rules (e.g.&nbsp;search), try to open schemeless URLs with
+the default scheme/local files, etc.<br> Opens a prompt with the current
+URL when no parameters are specified; otherwise, the string passed is
+displayed in the prompt. If this string ends with a newline
+(e.g.&nbsp;<code>pager.load("about:chawan\n")</code>), the URL is loaded
+directly.
+</td>
+</tr>
+<tr>
+<td>
+<code>loadSubmit(url)</code>
+</td>
+<td>
+Act as if <code>url</code> had been input into the address bar.<br> Same
+as <code>pager.load(url + "\n")</code>.
+</td>
+</tr>
+<tr>
+<td>
+<code>gotoURL(url, options = {replace: null, contentType: null, save: false})</code>
+</td>
+<td>
+Go to the specified URL immediately (without a prompt). This differs
+from <code>loadSubmit</code> in that it loads the exact URL as passed
+(no prepending https, etc.)<br> When <code>replace</code> is set, the
+new buffer may replace the old one if it loads successfully.<br> When
+<code>contentType</code> is set, the new buffer’s content type is
+forcefully set to that string.<br> When <code>save</code> is true, the
+user is prompted to save the resource instead of displaying it in a
+buffer.<br>
+</td>
+</tr>
+<tr>
+<td>
+<code>nextBuffer()</code>, <code>prevBuffer()</code>,
+<code>nextSiblingBuffer()</code>, <code>prevSiblingBuffer()</code>,
+<code>parentBuffer()</code>
+</td>
+<td>
+Traverse the buffer tree.<br> <code>nextBuffer()</code>,
+<code>prevBuffer()</code> do a depth-first traversal;
+`<code>nextSiblingBuffer()</code>, <code>prevSiblingBuffer()</code>
+cycle through siblings, and <code>parentBuffer()</code> returns to the
+parent.
+</td>
+</tr>
+<tr>
+<td>
+<code>dupeBuffer()</code>
+</td>
+<td>
+Duplicate the current buffer by loading its source to a new buffer.
+</td>
+</tr>
+<tr>
+<td>
+<code>discardBuffer(buffer = pager.buffer, dir = pager.navDirection)</code>
+</td>
+<td>
+Discard <code>buffer</code>, then move back to the buffer opposite to
+<code>dir</code>. Possible values of <code>dir</code> are: “prev”,
+“next”, “prev-sibling”, “next-sibling”, “parent”, “first-child”, “any”.
+</td>
+</tr>
+<tr>
+<td>
+<code>discardTree()</code>
+</td>
+<td>
+Discard all child buffers of the current buffer.
+</td>
+</tr>
+<tr>
+<td>
+<code>reload()</code>
+</td>
+<td>
+Open a new buffer with the current buffer’s URL, replacing the current
+buffer.
+</td>
+</tr>
+<tr>
+<td>
+<code>reshape()</code>
+</td>
+<td>
+Reshape the current buffer (=render the current page anew.)
+</td>
+</tr>
+<tr>
+<td>
+<code>redraw()</code>
+</td>
+<td>
+Redraw screen contents. Useful if something messed up the display.
+</td>
+</tr>
+<tr>
+<td>
+<code>toggleSource()</code>
+</td>
+<td>
+If viewing an HTML buffer, open a new buffer with its source. Otherwise,
+open the current buffer’s contents as HTML.
+</td>
+</tr>
+<tr>
+<td>
+<code>lineInfo()</code>
+</td>
+<td>
+Display information about the current line.
+</td>
+</tr>
+<tr>
+<td>
+<code>searchForward()</code>, <code>searchBackward()</code>
+</td>
+<td>
+Search forward/backward for a string in the current buffer.
+</td>
+</tr>
+<tr>
+<td>
+<code>isearchForward()</code>, <code>isearchBackward()</code>
+</td>
+<td>
+Incremental-search forward/backward for a string, highlighting the first
+result.
+</td>
+</tr>
+<tr>
+<td>
+<code>gotoLine(n?)</code>
+</td>
+<td>
+Go to the line passed as the first argument.<br> If no arguments were
+specified, an input window for entering a line is shown.
+</td>
+</tr>
+<tr>
+<td>
+<code>searchNext(n = 1)</code>, <code>searchPrev(n = 1)</code>
+</td>
+<td>
+Jump to the nth next/previous search result.
+</td>
+</tr>
+<tr>
+<td>
+<code>peek()</code>
+</td>
+<td>
+Display an alert message of the current URL.
+</td>
+</tr>
+<tr>
+<td>
+<code>peekCursor()</code>
+</td>
+<td>
+Display an alert message of the URL or title under the cursor. Multiple
+calls allow cycling through the two. (i.e.&nbsp;by default, press u once
+-&gt; title, press again -&gt; URL)
+</td>
+</tr>
+<tr>
+<td>
+<code>showFullAlert()</code>
+</td>
+<td>
+Show the last alert inside the line editor.
+</td>
+</tr>
+<tr>
+<td>
+<code>ask(prompt)</code>
+</td>
+<td>
+<p>Ask the user for confirmation. Returns a promise which resolves to a
+boolean value indicating whether the user responded with yes.<br> Can be
+used to implement an exit prompt like this:</p>
+<pre><code>q = 'pager.ask("Do you want to exit Chawan?").then(x =&gt; x ? pager.quit() : void(0))'</code></pre>
+</td>
+</tr>
+<tr>
+<td>
+<code>askChar(prompt)</code>
+</td>
+<td>
+Ask the user for any character.<br> Like <code>pager.ask</code>, but the
+return value is a character.
+</td>
+</tr>
+<tr>
+<td>
+<code>extern(cmd, options = {env: { ... }, suspend: true, wait: false})</code>
+</td>
+<td>
+Run an external command <code>cmd</code>.<br> By default, the
+<code>$CHA_URL</code> and <code>$CHA_CHARSET</code> variables are set;
+change this using the <code>env</code> option.<br>
+<code>options.suspend</code> suspends the pager while the command is
+being executed, and <code>options.wait</code> makes it so the user must
+press a key before the pager is resumed.<br> Returns true if the command
+exited successfully, false otherwise.<br> Warning: this has a bug where
+the output is written to stdout even if suspend is true. Redirect to
+/dev/null in the command if this is not desired. (This will be fixed in
+the future.)
+</td>
+</tr>
+<tr>
+<td>
+<code>externCapture(cmd)</code>
+</td>
+<td>
+Like extern(), but redirect the command’s stdout string into the result.
+null is returned if the command wasn’t executed successfully, or if the
+command returned a non-zero exit value.
+</td>
+</tr>
+<tr>
+<td>
+<code>externInto(cmd, ins)</code>
+</td>
+<td>
+Like extern(), but redirect <code>ins</code> into the command’s standard
+input stream. <code>true</code> is returned if the command exits
+successfully, otherwise the return value is <code>false</code>.
+</td>
+</tr>
+<tr>
+<td>
+<code>externFilterSource(cmd, buffer = null, contentType = null)</code>
+</td>
+<td>
+Redirects the specified (or if <code>buffer</code> is null, the current)
+buffer’s source into <code>cmd</code>.<br> Then, it pipes the output
+into a new buffer, with the content type <code>contentType</code> (or,
+if <code>contentType</code> is null, the original buffer’s content
+type).<br> Returns <code>undefined</code>. (It should return a promise;
+TODO.)
+</td>
+</tr>
+<tr>
+<td>
+<code>buffer</code>
+</td>
+<td>
+Getter for the currently displayed buffer. Returns a <code>Buffer</code>
+object; see below.
+</td>
+</tr>
+</tbody></table>
+<h3 id="buffer">Buffer</h3>
+<p>Each buffer is exposed as an object that implements the
+<code>Buffer</code> interface. To get a reference to the currently
+displayed buffer, use <code>pager.buffer</code>.</p>
+<p>Important: there exists a quirk of questionable value on pager, where
+accessing properties that do not exist on the pager will dispatch those
+to the current buffer (<code>pager.buffer</code>). So if you see
+e.g.&nbsp;<code>pager.url</code>, that is actually equivalent to
+<code>pager.buffer.url</code>, because <code>Pager</code> has no
+<code>url</code> getter.</p>
+<p>Following properties (functions/getters) are defined by
+<code>Buffer</code>:</p>
+<table>
+<tbody><tr>
+<th>
+Property
+</th>
+<th>
+Description
+</th>
+</tr>
+<tr>
+<td>
+<code>cursorUp(n = 1)</code>, <code>cursorDown(n = 1)</code>
+</td>
+<td>
+Move the cursor upwards/downwards by n lines, or if n is unspecified, by
+1.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorLeft(n = 1)</code>, <code>cursorRight(n = 1)</code>
+</td>
+<td>
+Move the cursor to the left/right by n cells, or if n is unspecified, by
+1.<br> Note: <code>n</code> right now represents cells, but really it
+should represent characters. (The difference is that right now numbered
+cursorLeft/cursorRight is broken for double-width chars.)
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorLineBegin()</code>, <code>cursorLineEnd()</code>
+</td>
+<td>
+Move the cursor to the first/last cell of the line.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorLineTextStart()</code>
+</td>
+<td>
+Move the cursor to the first non-blank character of the line.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorNextWord()</code>, <code>cursorNextViWord()</code>,
+<code>cursorNextBigWord()</code>
+</td>
+<td>
+Move the cursor to the beginning of the next <a href="https://chawan.net/doc/cha/api.html#word-types">word</a>.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorPrevWord()</code>, <code>cursorPrevViWord()</code>,
+<code>cursorPrevBigWord()</code>
+</td>
+<td>
+Move the cursor to the end of the previous <a href="https://chawan.net/doc/cha/api.html#word-types">word</a>.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorWordEnd()</code>, <code>cursorViWordEnd()</code>,
+<code>cursorBigWordEnd()</code>
+</td>
+<td>
+Move the cursor to the end of the current <a href="https://chawan.net/doc/cha/api.html#word-types">word</a>, or if already there, to the end of the next
+word.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorWordBegin()</code>, <code>cursorViWordBegin()</code>,
+<code>cursorBigWordBegin()</code>
+</td>
+<td>
+Move the cursor to the beginning of the current <a href="https://chawan.net/doc/cha/api.html#word-types">word</a>, or if already there, to the end of the
+previous word.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorNextLink()</code>, <code>cursorPrevLink()</code>
+</td>
+<td>
+Move the cursor to the beginning of the next/previous clickable element.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorLinkNavDown(n = 1)</code>,
+<code>cursorLinkNavUp(n = 1)</code>
+</td>
+<td>
+Move the cursor to the beginning of the next/previous clickable element.
+Buffer scrolls pagewise, wrap to beginning/end if content is less than
+one page length.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorNextParagraph(n = 1)</code>,
+<code>cursorPrevParagraph(n = 1)</code>
+</td>
+<td>
+Move the cursor to the beginning/end of the nth next/previous paragraph.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorNthLink(n = 1)</code>
+</td>
+<td>
+Move the cursor to the nth link of the document.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorRevNthLink(n = 1)</code>
+</td>
+<td>
+Move the cursor to the nth link of the document, counting backwards from
+the document’s last line.
+</td>
+</tr>
+<tr>
+<td>
+<code>pageUp(n = 1)</code>, <code>pageDown(n = 1)</code>,
+<code>pageLeft(n = 1)</code>, <code>pageRight(n = 1)</code>
+</td>
+<td>
+Scroll up/down/left/right by n pages.
+</td>
+</tr>
+<tr>
+<td>
+<code>halfPageUp(n = 1)</code>, <code>halfPageDown(n = 1)</code>,
+<code>halfPageLeft(n = 1)</code>, <code>halfPageRight(n = 1)</code>
+</td>
+<td>
+Scroll up/down/left/right by n half pages.
+</td>
+</tr>
+<tr>
+<td>
+<code>scrollUp(n = 1)</code>, <code>scrollDown(n = 1)</code>,
+<code>scrollLeft(n = 1)</code>, <code>scrollRight(n = 1)</code>
+</td>
+<td>
+Scroll up/down/left/right by n lines.
+</td>
+</tr>
+<tr>
+<td>
+<code>click()</code>
+</td>
+<td>
+Click the HTML element currently under the cursor.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorFirstLine()</code>, <code>cursorLastLine()</code>
+</td>
+<td>
+Move to the first/last line in the buffer.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorTop()</code>, <code>cursorMiddle()</code>,
+<code>cursorBottom()</code>
+</td>
+<td>
+Move to the first/middle/bottom line on the screen. (Equivalent to H/M/L
+in vi.)
+</td>
+</tr>
+<tr>
+<td>
+<code>lowerPage(n = this.cursory)</code>
+</td>
+<td>
+Move cursor to line n, then scroll up so that the cursor is on the top
+line on the screen. (<code>zt</code> in vim.)
+</td>
+</tr>
+<tr>
+<td>
+<code>lowerPageBegin(n = this.cursory)</code>
+</td>
+<td>
+Move cursor to the first non-blank character of line n, then scroll up
+so that the cursor is on the top line on the screen.
+(<code>z&lt;CR&gt;</code> in vi.)
+</td>
+</tr>
+<tr>
+<td>
+<code>centerLine(n = this.cursory)</code>
+</td>
+<td>
+Center screen around line n.&nbsp;(<code>zz</code> in vim.)
+</td>
+</tr>
+<tr>
+<td>
+<code>centerLineBegin(n = this.cursory)</code>
+</td>
+<td>
+Center screen around line n, and move the cursor to the line’s first
+non-blank character. (<code>z.</code> in vi.)
+</td>
+</tr>
+<tr>
+<td>
+<code>raisePage(n = this.cursory)</code>
+</td>
+<td>
+Move cursor to line n, then scroll down so that the cursor is on the top
+line on the screen. (zb in vim.)
+</td>
+</tr>
+<tr>
+<td>
+<code>lowerPageBegin(n = this.cursory)</code>
+</td>
+<td>
+Move cursor to the first non-blank character of line n, then scroll up
+so that the cursor is on the last line on the screen. (<code>z^</code>
+in vi.)
+</td>
+</tr>
+<tr>
+<td>
+<code>nextPageBegin(n = this.cursory)</code>
+</td>
+<td>
+If n was given, move to the screen before the nth line and raise the
+page. Otherwise, go to the previous screen’s last line and raise the
+page. (<code>z+</code> in vi.)
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorLeftEdge()</code>, <code>cursorMiddleColumn()</code>,
+<code>cursorRightEdge()</code>
+</td>
+<td>
+Move to the first/middle/last column on the screen.
+</td>
+</tr>
+<tr>
+<td>
+<code>centerColumn()</code>
+</td>
+<td>
+Center screen around the current column.
+</td>
+</tr>
+<tr>
+<td>
+<code>findNextMark(x = this.cursorx, y = this.cursory)</code>,
+<code>findPrevMark(x = this.cursorx, y = this.cursory)</code>
+</td>
+<td>
+Find the next/previous mark after/before <code>x</code>, <code>y</code>,
+if any; and return its id (or null if none were found.)
+</td>
+</tr>
+<tr>
+<td>
+<code>setMark(id, x = this.cursorx, y = this.cursory)</code>
+</td>
+<td>
+Set a mark at (x, y) using the name <code>id</code>.<br> Returns true if
+no other mark exists with <code>id</code>. If one already exists, it
+will be overridden and the function returns false.
+</td>
+</tr>
+<tr>
+<td>
+<code>clearMark(id)</code>
+</td>
+<td>
+Clear the mark with the name <code>id</code>. Returns true if the mark
+existed, false otherwise.
+</td>
+</tr>
+<tr>
+<td>
+<code>gotoMark(id)</code>
+</td>
+<td>
+If the mark <code>id</code> exists, jump to its position and return
+true. Otherwise, do nothing and return false.
+</td>
+</tr>
+<tr>
+<td>
+<code>gotoMarkY(id)</code>
+</td>
+<td>
+If the mark <code>id</code> exists, jump to the beginning of the line at
+its Y position and return true. Otherwise, do nothing and return false.
+</td>
+</tr>
+<tr>
+<td>
+<code>getMarkPos(id)</code>
+</td>
+<td>
+If the mark <code>id</code> exists, return its position as an array
+where the first element is the X position and the second element is the
+Y position. If the mark does not exist, return null.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorToggleSelection(n = 1, opts = {selectionType: "normal"})</code>
+</td>
+<td>
+Start a vim-style visual selection. The cursor is moved to the right by
+<code>n</code> cells.<br> selectionType may be “normal” (regular
+selection), “line” (line-based selection) and “column” (column-based
+selection).
+</td>
+</tr>
+<tr>
+<td>
+<code>getSelectionText()</code>
+</td>
+<td>
+Get the currently selected text.<br> Returns a promise, so consumers
+must <code>await</code> it to get the text.
+</td>
+</tr>
+<tr>
+<td>
+<code>markURL()</code>
+</td>
+<td>
+Convert URL-like strings to anchors on the current page.
+</td>
+</tr>
+<tr>
+<td>
+<code>toggleImages()</code>
+</td>
+<td>
+Toggle display of images in this buffer.
+</td>
+</tr>
+<tr>
+<td>
+<code>saveLink()</code>
+</td>
+<td>
+Save URL pointed to by the cursor.
+</td>
+</tr>
+<tr>
+<td>
+<code>saveSource()</code>
+</td>
+<td>
+Save the source of this buffer.
+</td>
+</tr>
+<tr>
+<td>
+<code>setCursorX(x)</code>, <code>setCursorY(y)</code>,
+<code>setCursorXY(x, y)</code>, <code>setCursorXCenter(x)</code>,
+<code>setCursorYCenter(y)</code>, <code>setCursorXYCenter(x, y)</code>
+</td>
+<td>
+Set the cursor position to <code>x</code> and <code>y</code>
+respectively, scrolling the view if necessary.<br> Variants that end
+with “Center” will also center the screen around the position if it is
+outside the screen.
+</td>
+</tr>
+<tr>
+<td>
+<code>url</code>
+</td>
+<td>
+Getter for the buffer’s URL. Note: this returns a <code>URL</code>
+object, not a string.
+</td>
+</tr>
+<tr>
+<td>
+<code>hoverTitle</code>, <code>hoverLink</code>, <code>hoverImage</code>
+</td>
+<td>
+Getter for the string representation of the element title/link/image
+currently under the cursor. Returns the empty string if no title is
+found.
+</td>
+</tr>
+<tr>
+<td>
+<code>cursorx</code>, <code>cursory</code>
+</td>
+<td>
+The x/y position of the cursor inside the buffer.<br> Note that although
+the status line is 1-based, these values are 0-based.
+</td>
+</tr>
+<tr>
+<td>
+<code>fromx</code>, <code>fromy</code>
+</td>
+<td>
+The x/y position of the first line displayed on the screen.
+</td>
+</tr>
+<tr>
+<td>
+<code>numLines</code>
+</td>
+<td>
+The number of lines currently loaded in the buffer.
+</td>
+</tr>
+<tr>
+<td>
+<code>width</code>, <code>height</code>
+</td>
+<td>
+The width and height of the buffer’s window (i.e.&nbsp;the visible part of
+the canvas).
+</td>
+</tr>
+<tr>
+<td>
+<code>process</code>
+</td>
+<td>
+The process ID of the buffer.
+</td>
+</tr>
+<tr>
+<td>
+<code>title</code>
+</td>
+<td>
+Text from the <code>title</code> element, or the buffer’s URL if there
+is no title.
+</td>
+</tr>
+<tr>
+<td>
+<code>parent</code>
+</td>
+<td>
+Parent buffer in the buffer tree. May be null.
+</td>
+</tr>
+<tr>
+<td>
+<code>children</code>
+</td>
+<td>
+Array of child buffers in the buffer tree.
+</td>
+</tr>
+<tr>
+<td>
+<code>select</code>
+</td>
+<td>
+Reference to the current <code>select</code> element’s widget, or null
+if no <code>select</code> element is open.<br> This object implements
+the <code>Select</code> interface, which is somewhat compatible with the
+<code>Buffer</code> interface with some exceptions. (TODO: elaborate)
+</td>
+</tr>
+</tbody></table>
+<h3 id="lineedit">LineEdit</h3>
+<p>The line editor at the bottom of the screen is exposed to the
+JavaScript context as <code>globalThis.line</code>, or simply
+<code>line</code>, and implements the <code>LineEdit</code>
+interface.</p>
+<p>Note that there is no single <code>LineEdit</code> object; a new one
+is created every time the line editor is opened, and when the line
+editor is closed, <code>globalThis.line</code> simply returns
+<code>null</code>.</p>
+<p>Following properties (functions/getters) are defined by
+<code>LineEdit</code>:</p>
+<table>
+<tbody><tr>
+<th>
+Property
+</th>
+<th>
+Description
+</th>
+</tr>
+<tr>
+<td>
+<code>submit()</code>
+</td>
+<td>
+Submit line.
+</td>
+</tr>
+<tr>
+<td>
+<code>cancel()</code>
+</td>
+<td>
+Cancel operation.
+</td>
+</tr>
+<tr>
+<td>
+<code>backspace()</code>
+</td>
+<td>
+Delete character before cursor.
+</td>
+</tr>
+<tr>
+<td>
+<code>delete()</code>
+</td>
+<td>
+Delete character after cursor.
+</td>
+</tr>
+<tr>
+<td>
+<code>clear()</code>
+</td>
+<td>
+Clear text before cursor.
+</td>
+</tr>
+<tr>
+<td>
+<code>kill()</code>
+</td>
+<td>
+Clear text after cursor.
+</td>
+</tr>
+<tr>
+<td>
+<code>clearWord()</code>
+</td>
+<td>
+Delete word before cursor.
+</td>
+</tr>
+<tr>
+<td>
+<code>killWord()</code>
+</td>
+<td>
+Delete word after cursor.
+</td>
+</tr>
+<tr>
+<td>
+<code>backward()</code>, <code>forward()</code>
+</td>
+<td>
+Move cursor backward/forward by one character.
+</td>
+</tr>
+<tr>
+<td>
+<code>nextWord()</code>, <code>prevWord()</code>
+</td>
+<td>
+Move cursor to the next/previous word by one character.
+</td>
+</tr>
+<tr>
+<td>
+<code>begin()</code>, <code>end()</code>
+</td>
+<td>
+Move cursor to the beginning/end of the line.
+</td>
+</tr>
+<tr>
+<td>
+<code>escape()</code>
+</td>
+<td>
+Ignore keybindings for next character.
+</td>
+</tr>
+<tr>
+<td>
+<code>nextHist()</code>, <code>prevHist()</code>
+</td>
+<td>
+Jump to the previous/next history entry.
+</td>
+</tr>
+</tbody></table>
+<!-- MANON
+
+## See also
+
+**cha**(1) **cha-config**(5)
+MANOFF -->
+</main>
+</body></html>

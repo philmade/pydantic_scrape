@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<!-- saved from url=(0038)https://chawan.net/doc/cha/mancha.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+Chawan: NAME
+</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="https://chawan.net/favicon.ico">
+<style>
+    /* layout */
+*           { box-sizing: border-box; border-width: 0 }
+body            { display: flex; flex-direction: column }
+body            { min-height: 100vh; margin: 0 auto }
+header          { max-width: 60ch; display: flex; flex-wrap: wrap }
+header a        { display: block; flex: 1; font-size: larger }
+main            { width: 72ch; margin: 1em auto }
+@media(width<72ch){main { width: 100% }                        }
+footer          { float: right; font-style: italic }
+main            { display: flow-root; padding: 0 1ch }
+h1, h2, h3, h4, h5, h6  { font-size: inherit }
+table           { border-spacing: .5ch 0; margin: 0 -1ch }
+figure, img     { max-width: 100%; margin: 0 }
+figure          { padding: 1em 0 0 0 }
+figcaption      { text-align: center }
+pre         { padding-left: 1ch }
+@media(grid:0){ h1  { padding: 1ch 0 0; margin: 0 }
+        td, th  { padding: .3ch 1ch }
+    code, pre   { font-size: 15px }     }
+    /* colors */
+*           { color: white }
+header a        { background: #204A50 }
+header a.current    { background: #192C30 }
+header a:hover      { background: #192930 }
+body            { background: #102527 }
+main            { background: #103C40 }
+main a[href]        { color: #FFC6CB }
+th, td          { background: #113134 }
+tr:nth-child(2n) > *    { background: #102628 }
+    /* decoration */
+a[href]         { text-decoration: none }
+a[href]:hover       { text-decoration: underline }
+header a[href]:hover    { text-decoration: none }
+</style>
+</head>
+<body>
+<center>
+<header>
+<a href="https://chawan.net/index.html">Index</a> <a href="https://chawan.net/news/index.html">News</a> <a href="https://chawan.net/doc/index.html">Docs</a> <a href="https://chawan.net/issues.html">Issues</a> <a href="https://sr.ht/~bptato/chawan">Source</a>
+</header>
+</center>
+<main>
+<h1 id="name">NAME</h1>
+<p>mancha - view manual pages via cha(1)</p>
+<h1 id="synopsis">SYNOPSIS</h1>
+<p><strong>mancha</strong> [<strong>-M</strong> <em>path</em>]
+[<em>section</em>] <em>name</em><br>
+<strong>mancha</strong> [<strong>-M</strong> <em>path</em>]
+[<em>section</em>] -k <em>keyword</em><br>
+<strong>mancha</strong> -l <em>file</em></p>
+<h1 id="description">DESCRIPTION</h1>
+<p><strong>mancha</strong> enables viewing man pages using the Chawan
+browser. It is analogous to the <strong>w3mman</strong>(1) utility.</p>
+<p><strong>mancha</strong> will call <strong>cha</strong>(1) with the
+appropriate <em>man:</em>, <em>man-k:</em> or <em>man-l:</em> URLs. The
+protocol adapter then opens the man page and injects markup into it,
+e.g.&nbsp;man page references are converted into <em>man:</em> links.</p>
+<h1 id="options">OPTIONS</h1>
+<p>Command line options are:</p>
+<dl>
+<dt><strong>-M</strong> <em>path</em></dt>
+<dd>
+<p>Set <em>path</em> as the MANPATH environment variable. See
+<strong>man</strong>(1) for details of how this is interpreted.</p>
+</dd>
+<dt><strong>-k</strong> <em>keyword</em></dt>
+<dd>
+<p>Use <em>keyword</em> for keyword-based man page search.</p>
+</dd>
+<dt><strong>-l</strong> <em>file</em></dt>
+<dd>
+<p>Open the specified local <em>file</em> as a man page.</p>
+</dd>
+</dl>
+<h1 id="environment">ENVIRONMENT</h1>
+<p>Following environment variables are used:</p>
+<dl>
+<dt><strong>MANCHA_CHA</strong></dt>
+<dd>
+<p>If set, the contents of the variable are used instead of
+<em>cha</em>. (Note that the <em>cha</em> command is called through
+<strong>system</strong>(3), so you do not have to override it so long as
+<em>cha</em> is found in your <strong>PATH</strong>.)</p>
+</dd>
+</dl>
+<!-- -->
+<dl>
+<dt><strong>MANCHA_MAN</strong></dt>
+<dd>
+<p>If set, the contents of the variable are used instead of
+<em>/usr/bin/man</em>.</p>
+</dd>
+</dl>
+<!-- -->
+<dl>
+<dt><strong>MANCHA_APROPOS</strong></dt>
+<dd>
+<p>If set, the contents of the variable are used instead of
+<em>/usr/bin/man</em>.</p>
+<p>(This is not a typo; normally (except on FreeBSD),
+<strong>mancha</strong> assumes that <strong>man</strong>(1) is
+compatible with <strong>apropos</strong>(1) and accepts the <em>-s</em>
+parameter. Overriding <strong>MANCHA_MAN</strong> therefore also
+overrides the command used for <strong>man-k</strong>, so long as
+<strong>MANCHA_APROPOS</strong> is not set.)</p>
+</dd>
+</dl>
+<h1 id="see-also">SEE ALSO</h1>
+<p><strong>man</strong>(1), <strong>cha</strong>(1),
+<strong>cha-localcgi</strong>(5), <strong>w3mman</strong>(1)</p>
+</main>
+</body></html>
