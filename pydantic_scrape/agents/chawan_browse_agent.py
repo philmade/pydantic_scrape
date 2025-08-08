@@ -12,36 +12,37 @@ Features:
 """
 
 import asyncio
-from typing import List
+from typing import List, Type, TypeVar, Generic, Any, Union
 
 from loguru import logger
 from pydantic import BaseModel
-from pydantic_ai import Agent
+from pydantic_ai import Agent, RunContext
 
 from pydantic_scrape.dependencies.chawan_browser_api import ChawanBrowser
 from pydantic_scrape.toolsets.chawan_toolset import (
     ChawanContext,
     click_link_by_index,
-    create_chawan_instructions,
-    detect_form_fields,
-    # Enhanced form tools (based on agent feedback)
     fill_form_bulk,
-    # Basic form tools
+    fill_input,
     get_current_url,
-    get_form_snapshot,
-    navigate_to_with_search,
+    navigate_to,
     scroll_page,
     submit_form,
 )
 
 
-class ChawanBrowseTask(BaseModel):
-    """Task for interactive chawan browsing"""
+# Generic output type for typed browsing
+T = TypeVar('T')
+
+class ChawanBrowseTask(BaseModel, Generic[T]):
+    """Task for interactive chawan browsing with dynamic output typing"""
 
     url: str
     objective: str = "Browse and extract information from the page"
     max_actions: int = 10
     timeout: int = 30
+    # The magic happens here - specify what type you want back!
+    output_type: Union[Type[T], Type[str]] = str  # Default to string for backward compatibility
 
 
 # MODULE-LEVEL AGENT - Can be used directly or via wrapper class
@@ -50,38 +51,47 @@ agent = Agent[str, ChawanContext](
     "openai:gpt-4o",
     deps_type=ChawanContext,
     tools=[
-        navigate_to_with_search,  # Smart navigation with auto cookie dismissal
-        click_link_by_index,
-        scroll_page,
-        detect_form_fields,
-        fill_form_bulk,  # Bulk form filling
-        get_form_snapshot,
-        submit_form,
-        get_current_url,
+        navigate_to,          # Simple navigation with direct context mutation
+        click_link_by_index,  # Click numbered links
+        scroll_page,          # Scroll content
+        fill_input,           # Fill single input fields
+        fill_form_bulk,       # Fill multiple fields efficiently
+        submit_form,          # Submit forms
+        get_current_url,      # Get current URL
     ],
-    system_prompt="""You are a focused web browsing agent with essential tools.
+    system_prompt="""You are a focused web browsing agent following dependency-as-graph pattern.
 
-Use navigate_to_with_search() with search terms when looking for specific content.
-Cookie popups are automatically dismissed during navigation.
-Use fill_form_bulk() for efficient form filling.
-Always get_form_snapshot() before submit_form().""",
+All tools return simple ✅/❌ status messages and directly mutate the ChawanContext.
+Your complete browsing state is tracked in the knowledge graph.
+Use your memory to avoid repeating actions and build on previous discoveries.""",
 )
 
 
 @agent.instructions
-def instructions(ctx):
-    return create_chawan_instructions(ctx)
+def dynamic_chawan_instructions(ctx: RunContext[ChawanContext]) -> str:
+    """Simple JSON dump of ChawanContext - let Pydantic structure do the work"""
+    
+    try:
+        # Just dump the entire ChawanContext as JSON - the AI can figure it out
+        return f"""Current browsing context:
+        
+{ctx.deps.render_state()}
+
+Use the tools to accomplish your objective. All tools return simple status messages and update the context directly."""
+    except Exception as e:
+        logger.error(f"❌ Error serializing ChawanContext: {e}")
+        return "Use the browsing tools to accomplish your objective."
 
 
 class ChawanBrowseAgentV3:
-    """Wrapper class for convenient usage of the module-level chawan agent"""
+    """Wrapper class for convenient usage with DYNAMIC OUTPUT TYPES! 🚀"""
 
     def __init__(self, enable_js: bool = True, debug: bool = False, timeout: int = 30):
         self.enable_js = enable_js
         self.debug = debug
         self.timeout = timeout
 
-    async def browse_site(self, task: ChawanBrowseTask) -> str:
+    async def browse_site(self, task: ChawanBrowseTask[T]) -> T:
         """Execute a browsing task using the module-level agent with toolset"""
         browser = None
         try:
@@ -93,19 +103,71 @@ class ChawanBrowseAgentV3:
             )
             await browser.start()
 
-            # Create context for the toolset
+            # Create context for the toolset - following new dependency-as-graph pattern
             context = ChawanContext(
                 browser=browser,
                 objective=task.objective,
-                max_actions=task.max_actions,
-                visited_urls=[],
-                clicked_links=[],
-                actions_taken=[],
-                pages_browsed=set(),
+                max_actions=task.max_actions
             )
 
-            # Execute browsing task using module-level agent
-            instruction = f"""
+            # DYNAMIC AGENT CONSTRUCTION BASED ON OUTPUT TYPE! 🚀
+            if task.output_type != str:
+                # Create typed agent dynamically!
+                logger.info(f"🎯 Creating typed agent with output: {task.output_type.__name__}")
+                
+                # Build enhanced system prompt for structured output
+                output_fields = ""
+                if hasattr(task.output_type, 'model_fields'):
+                    fields = list(task.output_type.model_fields.keys())
+                    output_fields = f"\nRequired fields: {', '.join(fields)}"
+                
+                typed_agent = Agent(
+                    "openai:gpt-4o",
+                    deps_type=ChawanContext,
+                    result_type=task.output_type,  # CRITICAL: This makes the agent return structured data!
+                    tools=[
+                        navigate_to, click_link_by_index, scroll_page, fill_input, submit_form,
+                        get_current_url
+                    ],
+                    system_prompt=f"""
+You are a web browsing agent that extracts information and returns it as structured data.
+
+🎯 RETURN TYPE: You must return a {task.output_type.__name__} object with these fields:{output_fields}
+
+IMPORTANT: 
+- Do NOT return plain text, strings, or summaries
+- Return ONLY the structured {task.output_type.__name__} object with all required fields filled
+- Browse systematically using available tools
+- Extract precise information to populate each field
+
+The system expects a {task.output_type.__name__} object as output, not text.
+"""
+                )
+                
+                instruction = f"""
+Accomplish this objective: {task.objective}
+
+Starting URL: {task.url}
+Maximum actions allowed: {task.max_actions}
+
+🎯 RETURN FORMAT: {task.output_type.__name__} with structured data
+
+Steps:
+1. Navigate to the starting URL using navigate_to()
+2. Analyze the page content and numbered links
+3. Take appropriate actions to accomplish the objective  
+4. Extract and return the information in the EXACT {task.output_type.__name__} format
+
+Be methodical and extract structured data.
+"""
+                
+                result = await typed_agent.run(instruction, deps=context)
+                
+            else:
+                # Use original string-based agent for backward compatibility
+                logger.info("📝 Using string-based agent (backward compatibility)")
+                
+                instruction = f"""
 Accomplish this objective: {task.objective}
 
 Starting URL: {task.url}
@@ -119,36 +181,38 @@ Steps to follow:
 
 Be methodical and describe what you see at each step.
 """
+                
+                result = await agent.run(instruction, deps=context)
 
-            result = await agent.run(instruction, deps=context)
-
-            # Add comprehensive session summary
+            # Add comprehensive session summary using new ChawanContext structure
             summary = f"""
 
 === BROWSING SESSION SUMMARY ===
 Objective: {task.objective}
 Starting URL: {task.url}
 Actions taken: {context.action_count}/{task.max_actions}
-URLs visited: {len(context.visited_urls)}
-Links clicked: {len(context.clicked_links)}
-Pages browsed: {len(context.pages_browsed)}
+Pages visited: {len(context.pages)}
+Successful actions: {context.successful_actions}
 Final URL: {browser.get_current_url()}
 
-Visited URLs:
-""" + "\n".join(f"- {url}" for url in context.visited_urls)
+Pages Visited:
+""" + "\n".join(f"- {page.title} ({page.url})" for page in context.pages)
 
-            if context.clicked_links:
-                summary += "\n\nClicked Links:\n" + "\n".join(
-                    f"- {link}" for link in context.clicked_links
-                )
-
-            if context.actions_taken:
+            if context.actions:
                 summary += "\n\nAll Actions Taken:\n" + "\n".join(
-                    f"- {action}" for action in context.actions_taken
+                    f"- {action.action_type}: {action.target} ({action.status})" for action in context.actions
                 )
 
             logger.info(f"✅ Completed browsing: {task.url}")
-            return str(result.output) + summary
+            
+            # Return typed output or string with summary
+            if task.output_type != str:
+                # For typed output, return just the structured data
+                logger.info(f"🎯 Returning typed output: {type(result.output)}")
+                return result.output  # This is now type T!
+            else:
+                # For string output, include the summary
+                return str(result.output) + summary
 
         except Exception as e:
             import traceback
@@ -201,15 +265,63 @@ async def browse_site_interactive(
 
 
 async def browse_sites_parallel(
-    tasks: List[ChawanBrowseTask],
-    enable_js: bool = True,
+    tasks: List[ChawanBrowseTask[Any]],
+    enable_js: bool = True, 
     debug: bool = False,
     timeout: int = 30,
-) -> List[str]:
+    max_concurrent: int = 3,
+) -> List[Any]:
     """
-    Browse multiple sites in parallel using the module-level agent.
-
+    🚀 REVOLUTIONARY: Parallel browsing with typed output support
+    
+    Execute multiple browsing tasks concurrently, each with their own specified output type!
+    This is incredibly powerful for building structured data extraction pipelines.
+    
     Args:
+        tasks: List of ChawanBrowseTask objects, each can have different output types!
+        enable_js: Enable JavaScript in browsers
+        debug: Enable detailed logging
+        timeout: Default timeout for browser operations
+        max_concurrent: Maximum number of concurrent browsing sessions
+    
+    Returns:
+        List[Any]: List of results, each in the type specified by the corresponding task
+        
+        Note: Due to Python typing limitations with heterogeneous lists, return type
+        is List[Any], but each element will be the exact type specified in the task.
+    
+    Example:
+    ```python
+    class NewsStory(BaseModel):
+        title: str
+        summary: str
+        
+    class Product(BaseModel):
+        name: str
+        price: str
+    
+    tasks = [
+        ChawanBrowseTask[NewsStory](
+            url="https://news.com",
+            output_type=NewsStory
+        ),
+        ChawanBrowseTask[Product](
+            url="https://shop.com/item", 
+            output_type=Product
+        )
+    ]
+    
+    results = await browse_sites_parallel(tasks)
+    # results[0] is NewsStory, results[1] is Product!
+    ```
+    
+    Benefits:
+        🚀 Concurrent execution for faster data extraction
+        🎯 Each task can have different output types
+        📊 Build complex structured data pipelines
+        ⚡ Efficient resource usage with controlled concurrency
+    
+    Old Args:
         tasks: List of ChawanBrowseTask objects to execute
         enable_js: Enable JavaScript execution for all browsers
         debug: Enable debug logging
