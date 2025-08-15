@@ -49,7 +49,9 @@ class PlaywrightBrowseTask(BaseModel, Generic[T]):
 
 
 async def browse_agent_factory(
-    task: PlaywrightBrowseTask[T], agent_context: AgentContext
+    task: PlaywrightBrowseTask[T],
+    agent_context: AgentContext,
+    conversaton_history: bool = False,
 ) -> T:
     """
     Execute a browsing task using the module-level agent with toolset.
@@ -93,10 +95,16 @@ async def browse_agent_factory(
     )
 
     @typed_agent.instructions
-    def dynamic_playwright_instructions(ctx: RunContext[PlaywrightContext]) -> str:
+    def dynamic_playwright_instructions(
+        ctx: RunContext[PlaywrightContext], conversation_history=conversaton_history
+    ) -> str:
         """Simple JSON dump of PlaywrightContext - let Pydantic structure do the work"""
         # Just dump the entire PlaywrightContext as JSON - the AI can figure it out
-        return f""" {ctx.deps.agent_context.format_conversation_history(5)} Current browsing context:{ctx.deps.render_state()} Use the tools to accomplish your objective. All tools return simple status messages and update the context directly."""
+        if conversation_history:
+            ch = ctx.deps.agent_context.format_conversation_history(5)
+        else:
+            ch = ""
+        return f""" {ch} Current browsing context:{ctx.deps.render_state()} Use the tools to accomplish your objective. All tools return simple status messages and update the context directly."""
 
     try:
         browser = None
@@ -135,7 +143,10 @@ async def browse_agent_factory(
 
 
 async def markdown_browse_agent_factory(
-    url: str, objective: str, agent_context: AgentContext
+    url: str,
+    objective: str,
+    agent_context: AgentContext,
+    conversaton_history: bool = False,
 ) -> str:
     """
     Simple string-based browse factory for basic agents.
@@ -187,13 +198,16 @@ async def markdown_browse_agent_factory(
     )
 
     @simple_agent.instructions
-    def dynamic_browse_instructions(ctx: RunContext[PlaywrightContext]) -> str:
+    def dynamic_browse_instructions(
+        ctx: RunContext[PlaywrightContext], conversaton_history=conversaton_history
+    ) -> str:
         """Provide browsing context and history"""
-        conversation = (
-            ctx.deps.agent_context.format_conversation_history(5)
-            if ctx.deps.agent_context
-            else ""
-        )
+        if conversaton_history:
+            # Include conversation history if requested
+            conversation = ctx.deps.agent_context.format_conversation_history(5)
+        else:
+            # Otherwise just use the current browsing state
+            conversation = ""
         return f"""{conversation}
 
 Current browsing state: {ctx.deps.render_state()}

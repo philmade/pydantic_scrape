@@ -299,6 +299,9 @@ async def navigate_to_search(ctx: RunContext[PlaywrightContext], url: str, searc
 
         logger.info(f"🔍 PLAYWRIGHT SEARCH NAVIGATION: {url} | Searching for: {', '.join(search_terms)}")
         
+        # Initialize filtered_content to prevent UnboundLocalError
+        filtered_content = "❌ No content available - navigation failed"
+        
         content = await ctx.deps.browser.navigate(url)
         
         # Get page info from our browser
@@ -322,6 +325,11 @@ async def navigate_to_search(ctx: RunContext[PlaywrightContext], url: str, searc
                 form_count=0,
                 ai_content=filtered_content  # Store filtered content agent actually sees
             )
+        else:
+            # Handle case where page_info is None (navigation failed)
+            ctx.deps.add_action("navigate_search", url, ActionStatus.FAILED, 
+                              f"Navigation failed - no page info available")
+            filtered_content = f"❌ Failed to load page content from {url}"
         
         # Return filtered content (much smaller context than full page)
         return f"""✅ Search navigation completed: {page_info.title if page_info else 'Unknown'}
